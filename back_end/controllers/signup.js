@@ -10,12 +10,12 @@ const signUpController = [
   asyncHandler(async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      throw new ErrorWithStatusCode(errors.array()[0], 400);
+      throw new ErrorWithStatusCode(errors.array()[0].msg, 400);
     }
-    const passwordhash = bcrypt.hash(req.body.password, 32);
+    const passwordhash = await bcrypt.hash(req.body.password, 16);
     const user = await prisma.user.create({
       data: {
-        fullname: req.body.firstname + req.body.lastname,
+        fullname: req.body.firstname + "" + req.body.lastname,
         email: req.body.email,
         passwordhash: passwordhash,
       },
