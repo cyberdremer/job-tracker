@@ -9,7 +9,7 @@ const localLoginController = [
   asyncHandler(async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      throw new ErrorWithStatusCode(errors.array()[0], 400);
+      throw new ErrorWithStatusCode(errors.array()[0].msg, 401);
     }
 
     passport.authenticate("local", { session: true }, (err, user, info) => {
@@ -17,7 +17,7 @@ const localLoginController = [
         return next(new ErrorWithStatusCode(err.msg, 500));
       }
       if (!user) {
-        return next(new ErrorWithStatusCode("Invalid Credentials", 400));
+        return next(new ErrorWithStatusCode("Invalid Credentials", 401));
       }
       req.login(user, (err) => {
         if (err) {
@@ -33,7 +33,7 @@ const localLoginController = [
           },
         });
       });
-    });
+    })(req, res, next);
   }),
 ];
 
@@ -41,14 +41,14 @@ const googleLoginController = [
   asyncHandler(async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      throw new ErrorWithStatusCode(errors.array()[0], 400);
+      throw new ErrorWithStatusCode(errors.array()[0].msg, 401);
     }
     passport.authenticate("google", { session: true }, (err, user, info) => {
       if (err) {
         return next(new ErrorWithStatusCode(err.msg, 500));
       }
       if (!user) {
-        return next(new ErrorWithStatusCode("Invalid Credentials", 400));
+        return next(new ErrorWithStatusCode("Invalid Credentials", 401));
       }
 
       req.login(user, (err) => {
@@ -60,8 +60,8 @@ const googleLoginController = [
           status: 200,
         });
       });
-    });
+    })(req, res, next);
   }),
 ];
 
-export  { localLoginController, googleLoginController };
+export { localLoginController, googleLoginController };
