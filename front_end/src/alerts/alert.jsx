@@ -1,16 +1,7 @@
 import { Input, Alert, Text, Stack } from "@chakra-ui/react";
-import GenericModal from "@/modal/genericmodal";
+import GenericModal from "@/genericcomponents/genericmodal";
 
-const DeleteJobListing = ({}) => {
-  <GenericModal role="alertdialog" title="Deleting Listing">
-    <Stack gap="5">
-      <Text>
-        Are you sure you would like to delete this job posting form your tracked
-        jobs?
-      </Text>
-    </Stack>
-  </GenericModal>;
-};
+
 
 const Alert = ({ message, type }) => {
   return (
@@ -31,4 +22,4 @@ const Alert = ({ message, type }) => {
 };
 
 
-export {Alert, DeleteJobListing}
+export {Alert}
