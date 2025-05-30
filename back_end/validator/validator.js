@@ -31,11 +31,11 @@ const signUpValidator = [
       }
     }),
   body("password").trim().notEmpty().withMessage(`Password: ${emptyError}`),
-  body("currentpassword")
+  body("confirmpassword")
     .trim()
     .notEmpty()
     .withMessage(`Confirm password: ${emptyError}`)
-    .custom((value) => {
+    .custom(async (value, { req }) => {
       return value === req.body.password;
     })
     .withMessage(
@@ -53,4 +53,18 @@ const loginValidator = [
     .withMessage(`Email: ${emailError}`),
 ];
 
-export { signUpValidator, loginValidator };
+const jobEntryValidator = [
+  body("title").trim().notEmpty().withMessage(`Title :${emptyError}`),
+  body("salary")
+    .notEmpty()
+    .withMessage(`Title :${emptyError}`)
+    .isFloat()
+    .withMessage(`Salary: must be a number!`),
+
+  body("location").notEmpty().withMessage(`Location :${emptyError}`),
+  body("company").notEmpty().withMessage(`Company :${emptyError}`),
+];
+
+
+
+export { signUpValidator, loginValidator,jobEntryValidator };
