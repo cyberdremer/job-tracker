@@ -6,7 +6,14 @@ import {
   Text,
   HStack,
 } from "@chakra-ui/react";
-const GenericModal = ({ open, role, title, children, handleClose }) => {
+const GenericModal = ({
+  open,
+  role,
+  title,
+  children,
+  handleClose,
+  footerButtons,
+}) => {
   return (
     <>
       <Dialog.Root open={open} role={role}>
@@ -20,16 +27,7 @@ const GenericModal = ({ open, role, title, children, handleClose }) => {
               <Dialog.Body>{children}</Dialog.Body>
               <Dialog.Footer>
                 <Dialog.ActionTrigger asChild>
-                  <Button variant="outline" onClick={handleClose}>
-                    <Text>Cancel</Text>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    colorPalette="red"
-                    onClick={handleDelete}
-                  >
-                    <Text>Delete</Text>
-                  </Button>
+                  {footerButtons}
                 </Dialog.ActionTrigger>
               </Dialog.Footer>
               <Dialog.CloseTrigger asChild>
@@ -43,5 +41,4 @@ const GenericModal = ({ open, role, title, children, handleClose }) => {
   );
 };
 
-
-export default GenericModal
+export default GenericModal;
