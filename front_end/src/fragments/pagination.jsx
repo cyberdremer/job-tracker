@@ -1,0 +1,41 @@
+import { ButtonGroup, IconButton, Pagination } from "@chakra-ui/react";
+import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
+import { useState } from "react";
+const PaginationList = ({ items }) => {
+  const [page, setPage] = useState(1);
+  return (
+    <>
+      <Pagination.Root
+        count={items.length * 5}
+        pageSize={5}
+        defaultPage={1}
+        page={page}
+        alignSelf="center"
+        marginTop="4"
+        onPageChange={(e) => setPage(e.page)}
+      >
+        <ButtonGroup variant="ghost" size="sm" wrap="wrap">
+          <Pagination.PrevTrigger asChild>
+            <IconButton>
+              <LuChevronLeft></LuChevronLeft>
+            </IconButton>
+          </Pagination.PrevTrigger>
+          <Pagination.Items
+            render={(page) => (
+              <IconButton variant={{ base: "ghost", _selected: "outline" }}>
+                {page.value}
+              </IconButton>
+            )}
+          ></Pagination.Items>
+          <Pagination.NextTrigger asChild>
+            <IconButton>
+              <LuChevronRight></LuChevronRight>
+            </IconButton>
+          </Pagination.NextTrigger>
+        </ButtonGroup>
+      </Pagination.Root>
+    </>
+  );
+};
+
+export default PaginationList;
