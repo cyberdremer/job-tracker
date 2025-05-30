@@ -7,14 +7,14 @@ const options = { usernameField: "email" };
 
 const strategyImplementation = async (email, password, done) => {
   try {
-    const user = await prisma.user.findMany({
+    const user = await prisma.user.findFirst({
       where: {
         email: email,
       },
     });
-    const passwordHashToMatch = !user
-      ? process.env.DEFAULT_PASSWORD_HASH
-      : user.passwordhash;
+    const passwordHashToMatch = user !== null ?
+       user.passwordhash
+      : process.env.DEFAULT_PASSWORD_HASH;
     const match = await bcrypt.compare(password, passwordHashToMatch);
     if (!user) {
       return done(null, false, { message: "Invalid Credentials" });
