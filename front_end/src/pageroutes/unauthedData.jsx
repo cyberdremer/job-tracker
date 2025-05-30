@@ -8,4 +8,5 @@ const unAuthedData = [
 ];
 
 
+
 export default unAuthedData;
