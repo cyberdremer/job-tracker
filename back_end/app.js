@@ -3,7 +3,7 @@ import cors from "cors";
 import topLevelRouter from "./routes/toplevel.js";
 import errorMiddleware from "./middleware/error.js";
 import sessionConfig from "./config/session.js";
-import passportConfig from "./config/passport.js";
+import passport from "./config/passport.js";
 import "dotenv/config";
 
 const corsConfig = cors({
@@ -20,8 +20,8 @@ app.use(corsConfig);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(sessionConfig);
-app.use(passportConfig.initialize());
-app.use(passportConfig.session());
+app.use(passport.initialize());
+app.use(passport.session());
 app.use(topLevelRouter);
 app.use(errorMiddleware);
 app.listen(
