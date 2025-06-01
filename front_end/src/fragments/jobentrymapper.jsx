@@ -9,8 +9,8 @@ const JobEntryMapper = ({ jobs, displayEditForm, displayDeleteForm }) => {
             <GridItem key={job.id}>
               <JobEntryCards
                 {...job}
-                onDelete={displayDeleteForm}
-                onEdit={displayEditForm}
+                onDelete={() => displayDeleteForm(job.id)}
+                onEdit={() => displayEditForm(job.id)}
               ></JobEntryCards>
             </GridItem>
           );
