@@ -22,6 +22,27 @@ const postRequest = async (endpoint, form) => {
   return data;
 };
 
+const protectedDeleteRequest = async (endpoint, body) => {
+  const response = await fetch(`${backendUrl + endpoint}`, {
+    method: "delete",
+    mode: "cors",
+    headers: {
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ ids: body }),
+    credentials: "include",
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(response.error.message || response.statusText);
+  }
+  return data;
+};
+
+
+
+
 const protectedGetRequest = async (endpoint) => {
   const response = await fetch(`${backendUrl + endpoint}`, {
     method: "get",
@@ -35,4 +56,4 @@ const protectedGetRequest = async (endpoint) => {
   return data;
 };
 
-export default { postRequest, protectedGetRequest };
+export  { postRequest, protectedGetRequest, protectedDeleteRequest };
