@@ -48,8 +48,8 @@ const JobEntryCards = ({
       </Card.Body>
       <Card.Footer>
         <HStack spacing="3">
-          <Button size="sm" colorScheme="blue" onClick={onEdit}>Edit</Button>
-          <Button size="sm" colorScheme="red" onClick={onDelete}>Delete</Button>
+          <Button size="sm" colorScheme="blue" onClick={() => onEdit()}>Edit</Button>
+          <Button size="sm" colorScheme="red" onClick={() => onDelete()}>Delete</Button>
         </HStack>
       </Card.Footer>
     </Card.Root>
