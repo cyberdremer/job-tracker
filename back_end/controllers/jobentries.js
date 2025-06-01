@@ -22,7 +22,7 @@ const postJobEntryController = [
         company,
         location,
         salary: parseFloat(salary),
-        status: status || "APPLYING"
+        status: status || "APPLYING",
       },
     });
 
@@ -34,6 +34,8 @@ const postJobEntryController = [
     });
   }),
 ];
+
+//TODO Delete this function, made redundant by delete multiple entry
 
 const deleteJobEntryController = [
   isAuthorized,
@@ -52,6 +54,38 @@ const deleteJobEntryController = [
       data: {
         message: "Job entry deleted successfully",
         status: 204,
+      },
+    });
+  }),
+];
+
+const deleteJobEntryMultiple = [
+  isAuthorized,
+  asyncHandler(async (req, res, next) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new ErrorWithStatusCode("No IDs provided", 400);
+    }
+
+    const deleted = await prisma.jobEntry.deleteMany({
+      where: {
+        id: {
+          in: ids,
+        },
+        ownerid: req.user.id,
+      },
+    });
+
+    if (deleted.count === 0) {
+      throw new ErrorWithStatusCode("No Entries were deleted!", 400);
+    }
+    const message = deleted.count === 1 ? "Entry Deleted" : "Entries deleted";
+
+    res.status(200).json({
+      data: {
+        message,
+        status: 200,
+        count: deleted.count,
       },
     });
   }),
@@ -193,4 +227,6 @@ export {
   getJobEntriesWithinSpecificDateRangeController,
   getAllJobEntriesController,
   getAllJobEntriesForDataVisualizationController,
+  deleteJobEntryMultiple,
+  updateJobEntryController,
 };
