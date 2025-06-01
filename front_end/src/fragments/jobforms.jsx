@@ -7,6 +7,8 @@ import {
   Text,
   Button,
   HStack,
+  Fieldset,
+  Stack,
 } from "@chakra-ui/react";
 import GenericSelect from "@/genericcomponents/genericselect";
 import { useState } from "react";
@@ -44,7 +46,7 @@ const CreateJobForm = ({ formOpen, handleFormClose, value }) => {
     >
       <Field.Root required>
         <Field.Label>Paste the job entry here!</Field.Label>
-        <Textarea placeholder="Job Descriptiopn"></Textarea>
+        <Textarea placeholder="Job Description"></Textarea>
         <Field.HelperText>
           PS. you can paste from any job scraping site!
         </Field.HelperText>
@@ -84,7 +86,12 @@ const DeleteJobForm = ({ formOpen, handleFormClose, handleDelete, value }) => {
   );
 };
 
-const EditJobForm = ({ formOpen, handleFormClose, handleSubmission }) => {
+const EditJobForm = ({
+  formOpen,
+  handleFormClose,
+  handleSubmission,
+  entry,
+}) => {
   const [selectValue, setSelectValue] = useState([]);
   return (
     <GenericModal
@@ -93,12 +100,43 @@ const EditJobForm = ({ formOpen, handleFormClose, handleSubmission }) => {
       handleClose={handleFormClose}
       footerButtons={
         <>
-          <HStack gap={3} justify="flex-start" w={"100%"}>
-            <Button colorPalette={"blue"} onClick={handleSubmission}>
-              Edit Job Entry
-            </Button>
-            <Button variant="outline">Cancel</Button>
-          </HStack>
+          <Fieldset.Root>
+            
+            <Fieldset.Content>
+              <Field.Root>
+                <Field.Label>Job Title: </Field.Label>
+                <Input name="title" placeholder={entry?.title || ""}></Input>
+              </Field.Root>
+
+              <Field.Root>
+                <Field.Label>Company: </Field.Label>
+                <Input name="company" placeholder={entry?.company || ""}></Input>
+              </Field.Root>
+
+              <Field.Root>
+                <Field.Label>Location: </Field.Label>
+                <Input name="location" placeholder={entry?.location || ""}></Input>
+              </Field.Root>
+
+              <Field.Root>
+                <Field.Label>Salary: </Field.Label>
+                <Input name="salary" placeholder={entry?.salary || ""}></Input>
+              </Field.Root>
+
+              <Field.Root>
+                <Field.Label>Date Applied</Field.Label>
+                <Input name="date" type="date" placeholder={new Date(entry?.createdat) || ""}></Input>
+              </Field.Root>
+
+              <Field.Root></Field.Root>
+            </Fieldset.Content>
+            <HStack gap={3} justify="flex-start" w={"100%"}>
+              <Button colorPalette={"blue"} onClick={handleSubmission}>
+                Edit Job Entry
+              </Button>
+              <Button variant="outline" onClick={handleFormClose}>Cancel</Button>
+            </HStack>
+          </Fieldset.Root>
         </>
       }
     ></GenericModal>
