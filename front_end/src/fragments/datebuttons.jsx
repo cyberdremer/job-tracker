@@ -2,7 +2,13 @@ import FilterMenu from "./filtermenu";
 import SwitchControl from "./switch";
 import { VStack, Group, Input, Button } from "@chakra-ui/react";
 
-const DateButtons = ({ startdate, updateDate, endDate, handleRefresh }) => {
+const DateButtons = ({
+  startdate,
+  updateDate,
+  endDate,
+  handleRefresh,
+  searchForDate,
+}) => {
   return (
     <>
       <VStack gap={2} alignItems="flex-start">
@@ -27,6 +33,7 @@ const DateButtons = ({ startdate, updateDate, endDate, handleRefresh }) => {
           maxW="100%"
           colorPalette="blue"
           alignSelf="stretch"
+          onClick={searchForDate}
         >
           Search for entries
         </Button>
