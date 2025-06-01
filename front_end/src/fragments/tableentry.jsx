@@ -21,9 +21,13 @@ const statusColor = {
   AWAITING: "purple",
   APPLIED: "teal",
 };
-const JobTable = ({ items }) => {
-  const [selection, setSelection] = useState([]);
-
+const JobTable = ({
+  items,
+  displayDeleteForm,
+  displayEditForm,
+  selection,
+  setSelection,
+}) => {
   const hasSelection = selection.length > 0;
   const indeterminate = hasSelection && selection.length < items.length;
 
@@ -111,12 +115,16 @@ const JobTable = ({ items }) => {
                 {selection.length} selected
               </ActionBar.SelectionTrigger>
               <ActionBar.Separator></ActionBar.Separator>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={displayDeleteForm}>
                 Delete <Kbd>⌫</Kbd>
               </Button>
-              <Button variant="outline">
-                Edit <Kbd>E</Kbd>
-              </Button>
+              {selection.length <= 1 ? (
+                <Button variant="outline" onClick={displayEditForm}>
+                  Edit <Kbd>E</Kbd>
+                </Button>
+              ) : (
+                ""
+              )}
             </ActionBar.Content>
           </ActionBar.Positioner>
         </Portal>
