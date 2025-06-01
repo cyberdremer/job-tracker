@@ -45,6 +45,15 @@ const mockJobEntries = [
     createdat: "5/23/2025",
     id: uuidv4(),
   },
+  {
+    title: "SWE 2",
+    salary: "10000",
+    location: "On-site",
+    company: "Tesla",
+    status: "Awaiting",
+    createdat: "5/23/2025",
+    id: uuidv4(),
+  },
   
 ];
 
