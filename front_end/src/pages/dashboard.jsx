@@ -15,10 +15,13 @@ import {
 import filterReducer from "@/reducers/filterreducer";
 
 import DateButtons from "@/fragments/datebuttons";
+import { protectedDeleteRequest } from "@/utils/requests";
 
 const Dashboard = () => {
   const [view, setView] = useState(false);
   const [entries] = useState(mockJobEntries);
+  const [selection, setSelection] = useState([]);
+  
   const [formDisplayed, setFormDisplayed] = useState({
     addForm: false,
     deleteForm: false,
@@ -49,6 +52,17 @@ const Dashboard = () => {
   const handleRefresh = () => {
     dispatch({ type: "RESET", payload: entries });
   };
+
+  const handleDeleteCard = () => {};
+
+  const handleEdit = () => {};
+
+  const handleDeleteCell = async () => {
+    try {
+      const response = await protectedDeleteRequest("/delete", selection[0]);
+    } catch (error) {}
+  };
+
   return (
     <>
       <CreateJobForm
@@ -59,14 +73,18 @@ const Dashboard = () => {
       ></CreateJobForm>
       <EditJobForm
         formOpen={formDisplayed.editForm}
-        handleFormClose={() =>
+        handleFormClose={(e) =>
           setFormDisplayed({ ...formDisplayed, editForm: false })
         }
+        entry={filterCriteria.find((entry) => entry.id === selection[0])}
       ></EditJobForm>
       <DeleteJobForm
         formOpen={formDisplayed.deleteForm}
         handleFormClose={() =>
-          setFormDisplayed({ ...formDisplayed, deleteForm: false })
+          setFormDisplayed({
+            ...formDisplayed,
+            deleteForm: false,
+          })
         }
       ></DeleteJobForm>
       <Flex align="flex-start" minH="100vh" px={4} py={6} gap={8}>
@@ -74,7 +92,10 @@ const Dashboard = () => {
           <VStack align="stretch" gap={4}>
             <SwitchControl
               toggled={view}
-              setToggle={setView}
+              setToggle={() => {
+                setSelection([]);
+                setView(!view);
+              }}
               headingTitle={"Switch Job View"}
             ></SwitchControl>
             <FilterMenu
@@ -101,15 +122,29 @@ const Dashboard = () => {
           {!view && (
             <JobEntryMapper
               jobs={filterCriteria}
-              displayEditForm={() =>
-                setFormDisplayed({ ...formDisplayed, editForm: true })
-              }
+              displayEditForm={(job) => {
+                setSelection([job]);
+                setFormDisplayed({ ...formDisplayed, editForm: true });
+              }}
+              displayDeleteForm={(job) => {
+                setSelection([job]);
+                setFormDisplayed({ ...formDisplayed, deleteForm: true });
+              }}
+            ></JobEntryMapper>
+          )}
+          {view && (
+            <JobTable
+              items={filterCriteria}
+              selection={selection}
+              setSelection={setSelection}
+              displayEditForm={() => {
+                setFormDisplayed({ ...formDisplayed, editForm: true });
+              }}
               displayDeleteForm={() =>
                 setFormDisplayed({ ...formDisplayed, deleteForm: true })
               }
-            ></JobEntryMapper>
+            ></JobTable>
           )}
-          {view && <JobTable items={filterCriteria}></JobTable>}
         </Box>
       </Flex>
     </>
