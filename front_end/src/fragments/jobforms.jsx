@@ -25,8 +25,26 @@ const selectOptions = createListCollection({
   ],
 });
 
-const CreateJobForm = ({ formOpen, handleFormClose, value }) => {
+const CreateJobForm = ({
+  formOpen,
+  handleFormClose,
+  handleSubmission,
+  value,
+}) => {
   const [selectValue, setSelectValue] = useState([]);
+
+  const [form, setForm] = useState({
+    description: "",
+    status: "",
+  });
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const onSubmit = () => {
+    handleSubmission(form);
+  };
   return (
     <GenericModal
       title={"Create Job Entry"}
@@ -35,7 +53,7 @@ const CreateJobForm = ({ formOpen, handleFormClose, value }) => {
       handleClose={handleFormClose}
       footerButtons={
         <HStack gap={3} justify={"flex-start"} w={"100%"}>
-          <Button colorPalette="green">
+          <Button colorPalette="green" onClick={handleSubmission}>
             <Text>Create Job Entry</Text>
           </Button>
           <Button variant="outline" onClick={handleFormClose}>
@@ -46,7 +64,12 @@ const CreateJobForm = ({ formOpen, handleFormClose, value }) => {
     >
       <Field.Root required>
         <Field.Label>Paste the job entry here!</Field.Label>
-        <Textarea placeholder="Job Description"></Textarea>
+        <Textarea
+          placeholder="Job Description"
+          value={form.description}
+          onChange={handleChange}
+          name="description"
+        ></Textarea>
         <Field.HelperText>
           PS. you can paste from any job scraping site!
         </Field.HelperText>
@@ -54,7 +77,7 @@ const CreateJobForm = ({ formOpen, handleFormClose, value }) => {
       <GenericSelect
         selectItems={selectOptions}
         label={"Application Status"}
-        handleClick={() => {}}
+        handleClick={setSelectValue}
         name={"status"}
         value={selectValue}
       ></GenericSelect>
@@ -62,8 +85,7 @@ const CreateJobForm = ({ formOpen, handleFormClose, value }) => {
   );
 };
 
-const DeleteJobForm = ({ formOpen, handleFormClose, handleDelete, value }) => {
-  const [selectValue, setSelectValue] = useState([]);
+const DeleteJobForm = ({ formOpen, handleFormClose, handleDelete }) => {
   return (
     <GenericModal
       title={"Delete Job Entry"}
@@ -93,6 +115,22 @@ const EditJobForm = ({
   entry,
 }) => {
   const [selectValue, setSelectValue] = useState([]);
+
+  const [form, setForm] = useState({
+    title: entry?.title || "",
+    company: entry?.company || "",
+    location: entry?.location || "",
+    salary: entry?.salary || "",
+    date: entry?.createdat || "",
+  });
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const onSubmit = () => {
+    handleSubmission(form);
+  };
   return (
     <GenericModal
       title={"Edit Job Entry"}
@@ -101,40 +139,67 @@ const EditJobForm = ({
       footerButtons={
         <>
           <Fieldset.Root>
-            
             <Fieldset.Content>
               <Field.Root>
                 <Field.Label>Job Title: </Field.Label>
-                <Input name="title" placeholder={entry?.title || ""}></Input>
+                <Input
+                  name="title"
+                  placeholder={entry?.title || ""}
+                  value={form.title}
+                  onChange={handleChange}
+                ></Input>
               </Field.Root>
 
               <Field.Root>
                 <Field.Label>Company: </Field.Label>
-                <Input name="company" placeholder={entry?.company || ""}></Input>
+                <Input
+                  name="company"
+                  placeholder={entry?.company || ""}
+                  value={form.company}
+                  onChange={handleChange}
+                ></Input>
               </Field.Root>
 
               <Field.Root>
                 <Field.Label>Location: </Field.Label>
-                <Input name="location" placeholder={entry?.location || ""}></Input>
+                <Input
+                  name="location"
+                  placeholder={entry?.location || ""}
+                  value={form.location}
+                  onChange={handleChange}
+                ></Input>
               </Field.Root>
 
               <Field.Root>
                 <Field.Label>Salary: </Field.Label>
-                <Input name="salary" placeholder={entry?.salary || ""}></Input>
+                <Input
+                  name="salary"
+                  placeholder={entry?.salary || ""}
+                  form={form.salary}
+                  onChange={handleChange}
+                ></Input>
               </Field.Root>
 
               <Field.Root>
                 <Field.Label>Date Applied</Field.Label>
-                <Input name="date" type="date" placeholder={new Date(entry?.createdat) || ""}></Input>
+                <Input
+                  name="date"
+                  type="date"
+                  placeholder={new Date(entry?.createdat) || ""}
+                  value={form.date}
+                  onChange={handleChange}
+                ></Input>
               </Field.Root>
 
               <Field.Root></Field.Root>
             </Fieldset.Content>
             <HStack gap={3} justify="flex-start" w={"100%"}>
-              <Button colorPalette={"blue"} onClick={handleSubmission}>
+              <Button colorPalette={"blue"} onClick={onSubmit}>
                 Edit Job Entry
               </Button>
-              <Button variant="outline" onClick={handleFormClose}>Cancel</Button>
+              <Button variant="outline" onClick={handleFormClose}>
+                Cancel
+              </Button>
             </HStack>
           </Fieldset.Root>
         </>
