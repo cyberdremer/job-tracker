@@ -11,7 +11,11 @@ import {
 } from "@chakra-ui/react";
 import timer from "@/utils/popuptimer";
 import { FaGoogle } from "react-icons/fa";
+import { postRequest } from "@/utils/requests";
+import { useNavigate } from "react-router";
+import AlertBox from "@/alerts/alertbox";
 const Login = ({}) => {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -31,16 +35,57 @@ const Login = ({}) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleLogin = async(e) => {};
+  const handleLogin = async (e) => {
+    try {
+      const response = await postRequest("/login/local", form);
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+      setSuccess({
+        message: response.data.message,
+        occurred: true,
+      });
 
-  const handleGoogleLogin = (e) => {}
+      setTimeout(() => {
+        setSuccess({
+          message: "",
+          occurred: false,
+        });
+        navigate("/dashboard");
+      }, timer);
+    } catch (error) {
+      setError({
+        message: error.message,
+        occurred: true,
+      });
+
+      setTimeout(() => {
+        setError({
+          message: "",
+          occurred: false,
+        });
+      }, timer);
+    }
+  };
+
+  const handleGoogleLogin = (e) => {};
 
   return (
     <>
       {success.occurred && (
-        <SuccessAlert message={success.message}></SuccessAlert>
+        <AlertBox
+          type={"success"}
+          title={"Success"}
+          message={success.message}
+        ></AlertBox>
       )}
-      {error.occurred && <ErrorAlert message={error.message}></ErrorAlert>}
+      {error.occurred && (
+        <AlertBox
+          type={"error"}
+          title={"Error"}
+          message={error.message}
+        ></AlertBox>
+      )}
       <Fieldset.Root
         size="lg"
         maxW="md"
