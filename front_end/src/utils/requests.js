@@ -1,7 +1,12 @@
 import backendUrl from "./backendurl";
 
 const formToUrlParams = (form) => {
-  return new URLSearchParams(new FormData(form)).toString();
+  const formData = new FormData();
+  Object.entries(form).forEach(([key, value]) => {
+    formData.append(key, value);
+  });
+  const urlQuery = new URLSearchParams(formData).toString();
+  return urlQuery;
 };
 
 const postRequest = async (endpoint, form) => {
@@ -9,6 +14,7 @@ const postRequest = async (endpoint, form) => {
   const response = await fetch(`${backendUrl + endpoint}`, {
     method: "post",
     mode: "cors",
+    credentials: "include",
     body: query,
     headers: {
       "content-type": "application/x-www-form-urlencoded",
@@ -17,8 +23,27 @@ const postRequest = async (endpoint, form) => {
 
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(response.error.message || response.statusText);
+    throw new Error(data.error.message || response.statusText);
   }
+  return data;
+};
+
+const protectedPostRequest = async (endpoint, body) => {
+  const bodyFormatted = formToUrlParams(body);
+  const response = await fetch(`${backendUrl + endpoint}`, {
+    method: "post",
+    credentials: "include",
+    mode: "cors",
+    body: bodyFormatted,
+    headers: {
+      "content-type": "application/x-www-form-urlencoded",
+    },
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error.message || response.statusText);
+  }
+
   return data;
 };
 
@@ -35,13 +60,10 @@ const protectedDeleteRequest = async (endpoint, body) => {
 
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(response.error.message || response.statusText);
+    throw new Error(data.error.message || response.statusText);
   }
   return data;
 };
-
-
-
 
 const protectedGetRequest = async (endpoint) => {
   const response = await fetch(`${backendUrl + endpoint}`, {
@@ -51,9 +73,14 @@ const protectedGetRequest = async (endpoint) => {
   });
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(response.error.message || response.statusText);
+    throw new Error(data.error.message || response.statusText);
   }
   return data;
 };
 
-export  { postRequest, protectedGetRequest, protectedDeleteRequest };
+export {
+  postRequest,
+  protectedGetRequest,
+  protectedDeleteRequest,
+  protectedPostRequest,
+};
