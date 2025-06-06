@@ -33,16 +33,22 @@ const GenericSelect = ({
             <Select.Indicator></Select.Indicator>
           </Select.IndicatorGroup>
         </Select.Control>
-        <Portal>
+        
           <Select.Positioner>
-            {selectItems.items.map((items, index) => {
-              <Select.Item item={items} key={index} name={name}>
-                {items}
-                <Select.ItemIndicator></Select.ItemIndicator>
-              </Select.Item>;
-            })}
+            <Select.Content>
+              {selectItems.items.map((selectItem, index) => (
+                <Select.Item
+                  item={selectItem}
+                  key={selectItem.value}
+                  name={name}
+                >
+                  {selectItem.label}
+                  <Select.ItemIndicator></Select.ItemIndicator>
+                </Select.Item>
+              ))}
+            </Select.Content>
           </Select.Positioner>
-        </Portal>
+        
       </Select.Root>
     </>
   );
