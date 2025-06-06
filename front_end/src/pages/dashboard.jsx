@@ -5,7 +5,8 @@ import JobTable from "@/fragments/tableentry";
 import TableView from "@/fragments/tableentryview";
 import FilterMenu from "@/fragments/filtermenu";
 import SwitchControl from "@/fragments/switch";
-import { Box, Button, Flex, HStack, VStack } from "@chakra-ui/react";
+import { Alert, Box, Button, Flex, HStack, VStack } from "@chakra-ui/react";
+import timer from "@/utils/popuptimer";
 import { useReducer, useState } from "react";
 import {
   CreateJobForm,
@@ -15,13 +16,35 @@ import {
 import filterReducer from "@/reducers/filterreducer";
 
 import DateButtons from "@/fragments/datebuttons";
-import { protectedDeleteRequest } from "@/utils/requests";
+import {
+  postRequest,
+  protectedDeleteRequest,
+  protectedGetRequest,
+  protectedPostRequest,
+} from "@/utils/requests";
+import AlertBox from "@/alerts/alertbox";
+import { useEntriesHook } from "@/effects/hooks";
+import LoadingPlaceholder from "@/fragments/loading";
+import EmptyContainer from "@/fragments/emptycontainer";
 
 const Dashboard = () => {
   const [view, setView] = useState(false);
-  const [entries] = useState(mockJobEntries);
+  const { entries, setEntries, fetchError, loading } = useEntriesHook(
+    "/entry/retrieve/past-thirty-days"
+  );
+
   const [selection, setSelection] = useState([]);
-  
+
+  const [success, setSuccess] = useState({
+    message: "",
+    ocurred: false,
+  });
+
+  const [error, setError] = useState({
+    message: "",
+    ocurred: false,
+  });
+
   const [formDisplayed, setFormDisplayed] = useState({
     addForm: false,
     deleteForm: false,
@@ -53,29 +76,181 @@ const Dashboard = () => {
     dispatch({ type: "RESET", payload: entries });
   };
 
-  const handleDeleteCard = () => {};
+  const handleEdit = async (formData) => {
+    try {
+      const response = await protectedPostRequest("/entry/update", formData);
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+      const copy = [...entries];
+      const idxToEdit = copy.findIndex((entry) => {
+        return entry.id === selection[0];
+      });
 
-  const handleEdit = () => {};
+      copy[idxToEdit] = editEntry;
+      setEntries(copy);
 
-  const handleDeleteCell = async () => {
+      setSuccess({
+        message: response.data.message,
+        ocurred: true,
+      });
+
+      setTimeout(() => {
+        setSuccess({
+          message: "",
+          ocurred: false,
+        });
+      });
+    } catch (error) {
+      setError({
+        message: error.message,
+        ocurred: true,
+      });
+      setTimeout(() => {
+        setError({
+          message: "",
+          ocurred: false,
+        });
+      }, timer);
+    }
+  };
+
+  const handleDelete = async () => {
     try {
       const response = await protectedDeleteRequest("/delete", selection[0]);
-    } catch (error) {}
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      setSuccess({
+        message: response.data.message,
+        ocurred: true,
+      });
+
+      const entryCopy = [...entries];
+      setEntries(
+        entryCopy.filter((entries) => {
+          return entries.id !== selection[0];
+        })
+      );
+
+      setTimeout(() => {
+        setSuccess({
+          message: "",
+          ocurred: false,
+        });
+      }, timer);
+    } catch (error) {
+      setSuccess({
+        message: error.message,
+        ocurred: false,
+      });
+
+      setTimeout(() => {
+        setSuccess({
+          message: "",
+          ocurred: false,
+        });
+      });
+    }
+  };
+
+  const handleSearch = async (startDate, endDate) => {
+    try {
+      const startSearchDate = new Date(startDate)
+        .toLocaleDateString()
+        .replaceAll("/", "-");
+      const endSearchDate = new Date(endDate)
+        .toLocaleDateString()
+        .replaceAll("/", "-");
+      const response = await protectedGetRequest(
+        `/entry/retrieve/${startSearchDate + "-" + endSearchDate}`
+      );
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+      setSuccess({
+        ocurred: true,
+        message: response.data.message,
+      });
+
+      setTimeout(() => {
+        setSuccess({
+          ocurred: false,
+          message: "",
+        });
+      }, timer);
+    } catch (error) {
+      setError({
+        message: error.message,
+        ocurred: true,
+      });
+
+      setTimeout(() => {
+        setError({
+          message: "",
+          ocurred: false,
+        });
+      });
+    }
+  };
+
+  const handleCreate = async (form) => {
+    try {
+      const response = await protectedPostRequest("/entry/create", form);
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+      setSuccess({
+        message: response.data.message,
+        ocurred: true,
+      });
+      setEntries([...entries, response.data.entry]);
+      setTimeout(() => {
+        setSuccess({
+          message: "",
+          ocurred: false,
+        });
+      }, timer);
+    } catch (error) {
+      setError({
+        message: error.message,
+        ocurred: true,
+      });
+      setTimeout(() => {
+        setError({
+          message: "",
+          ocurred: true,
+        });
+      }, timer);
+    }
   };
 
   return (
     <>
+      {error.ocurred && (
+        <AlertBox title="Error" message={error.message} type="error"></AlertBox>
+      )}
+      {success.ocurred && (
+        <AlertBox
+          title="Success"
+          message={success.message}
+          type="success"
+        ></AlertBox>
+      )}
       <CreateJobForm
         formOpen={formDisplayed.addForm}
         handleFormClose={() =>
           setFormDisplayed({ ...formDisplayed, addForm: false })
         }
+        handleSubmission={handleCreate}
       ></CreateJobForm>
       <EditJobForm
         formOpen={formDisplayed.editForm}
         handleFormClose={(e) =>
           setFormDisplayed({ ...formDisplayed, editForm: false })
         }
+        handleSubmission={handleEdit}
         entry={filterCriteria.find((entry) => entry.id === selection[0])}
       ></EditJobForm>
       <DeleteJobForm
@@ -86,7 +261,9 @@ const Dashboard = () => {
             deleteForm: false,
           })
         }
+        handleDelete={handleDelete}
       ></DeleteJobForm>
+
       <Flex align="flex-start" minH="100vh" px={4} py={6} gap={8}>
         <Box minW="220px" maxW="260px">
           <VStack align="stretch" gap={4}>
@@ -108,6 +285,7 @@ const Dashboard = () => {
             <DateButtons handleRefresh={handleRefresh}></DateButtons>
           </VStack>
         </Box>
+
         <Box flex="1">
           <Flex justify="flex-end" mb={4}>
             <Button
@@ -119,32 +297,54 @@ const Dashboard = () => {
               Add Job
             </Button>
           </Flex>
-          {!view && (
-            <JobEntryMapper
-              jobs={filterCriteria}
-              displayEditForm={(job) => {
-                setSelection([job]);
-                setFormDisplayed({ ...formDisplayed, editForm: true });
-              }}
-              displayDeleteForm={(job) => {
-                setSelection([job]);
-                setFormDisplayed({ ...formDisplayed, deleteForm: true });
-              }}
-            ></JobEntryMapper>
+          {loading && <LoadingPlaceholder></LoadingPlaceholder>}
+          {fetchError && (
+            <EmptyContainer
+              message={"Error In Loading Entries, Please Try Again Later"}
+            ></EmptyContainer>
           )}
-          {view && (
-            <JobTable
-              items={filterCriteria}
-              selection={selection}
-              setSelection={setSelection}
-              displayEditForm={() => {
-                setFormDisplayed({ ...formDisplayed, editForm: true });
-              }}
-              displayDeleteForm={() =>
-                setFormDisplayed({ ...formDisplayed, deleteForm: true })
+          {(() => {
+            if (!loading && !fetchError) {
+              if (entries.length > 0) {
+                if (view) {
+                  return (
+                    <JobTable
+                      items={filterCriteria}
+                      selection={selection}
+                      setSelection={setSelection}
+                      displayEditForm={() => {
+                        setFormDisplayed({ ...formDisplayed, editForm: true });
+                      }}
+                      displayDeleteForm={() =>
+                        setFormDisplayed({ ...formDisplayed, deleteForm: true })
+                      }
+                    ></JobTable>
+                  );
+                } else {
+                  return (
+                    <JobEntryMapper
+                      jobs={filterCriteria}
+                      displayEditForm={(job) => {
+                        setSelection([job]);
+                        setFormDisplayed({ ...formDisplayed, editForm: true });
+                      }}
+                      displayDeleteForm={(job) => {
+                        setSelection([job]);
+                        setFormDisplayed({
+                          ...formDisplayed,
+                          deleteForm: true,
+                        });
+                      }}
+                    ></JobEntryMapper>
+                  );
+                }
+              } else {
+                return (
+                  <EmptyContainer message="No job entries found"></EmptyContainer>
+                );
               }
-            ></JobTable>
-          )}
+            }
+          })()}
         </Box>
       </Flex>
     </>
