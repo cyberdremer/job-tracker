@@ -17,6 +17,7 @@ passport.deserializeUser(async (id, done) => {
       },
       select: {
         fullname: true,
+        id: true
       },
     });
 
