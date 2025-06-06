@@ -2,6 +2,8 @@ import { body } from "express-validator";
 import prisma from "../config/prisma.js";
 const emptyError = "this field cannot be empty";
 const emailError = "Not a valid email address, please try again";
+import "dotenv/config";
+import { Status } from "@prisma/client";
 const signUpValidator = [
   body("firstname")
     .trim()
@@ -41,6 +43,15 @@ const signUpValidator = [
     .withMessage(
       `Confirm password: password and the confirm password need to be the same`
     ),
+
+  body("signupcode")
+    .trim()
+    .notEmpty()
+    .withMessage(`Sign up code :${emptyError}`)
+    .custom((value) => {
+      return value === process.env.SIGN_UP_CODE;
+    })
+    .withMessage(`Sign Up Code: Invalid Sign Up Code, Try Again!`),
 ];
 
 const loginValidator = [
@@ -54,17 +65,21 @@ const loginValidator = [
 ];
 
 const jobEntryValidator = [
-  body("title").trim().notEmpty().withMessage(`Title :${emptyError}`),
-  body("salary")
+  body("description")
+    .trim()
     .notEmpty()
-    .withMessage(`Title :${emptyError}`)
-    .isFloat()
-    .withMessage(`Salary: must be a number!`),
+    .withMessage(`Description: ${emptyError}`),
 
-  body("location").notEmpty().withMessage(`Location :${emptyError}`),
-  body("company").notEmpty().withMessage(`Company :${emptyError}`),
+  body("status")
+    .trim()
+    .notEmpty()
+    .withMessage(`Status: ${emptyError}`)
+    .custom((value) => {
+      return Object.values(Status).includes(value.toUpperCase());
+    })
+    .withMessage(
+      "Status: Not a valid status, please select a valid status and try again"
+    ),
 ];
 
-
-
-export { signUpValidator, loginValidator,jobEntryValidator };
+export { signUpValidator, loginValidator, jobEntryValidator };
