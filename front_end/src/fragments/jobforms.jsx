@@ -15,13 +15,13 @@ import { useState } from "react";
 
 const selectOptions = createListCollection({
   items: [
-    "Applying",
-    "Interviewing",
-    "Rejected",
-    "Accepted",
-    "Closed",
-    "Awaiting",
-    "Applied",
+    { label: "Applying", value: "APPLYING" },
+    { label: "Interviewing", value: "INTERVIEWING" },
+    { label: "Rejected", value: "REJECTED" },
+    { label: "Accepted", value: "ACCEPTED" },
+    { label: "Closed", value: "CLOSED" },
+    { label: "Awaiting", value: "AWAITING" },
+    { label: "Applied", value: "APPLIED" },
   ],
 });
 
@@ -35,7 +35,6 @@ const CreateJobForm = ({
 
   const [form, setForm] = useState({
     description: "",
-    status: "",
   });
 
   const handleChange = (e) => {
@@ -43,7 +42,12 @@ const CreateJobForm = ({
   };
 
   const onSubmit = () => {
-    handleSubmission(form);
+    const submittedForm = {
+      description: form.description,
+      status: selectValue,
+    };
+    handleSubmission(submittedForm);
+    console.log(form);
   };
   return (
     <GenericModal
@@ -53,7 +57,7 @@ const CreateJobForm = ({
       handleClose={handleFormClose}
       footerButtons={
         <HStack gap={3} justify={"flex-start"} w={"100%"}>
-          <Button colorPalette="green" onClick={handleSubmission}>
+          <Button colorPalette="green" onClick={onSubmit}>
             <Text>Create Job Entry</Text>
           </Button>
           <Button variant="outline" onClick={handleFormClose}>
@@ -77,7 +81,7 @@ const CreateJobForm = ({
       <GenericSelect
         selectItems={selectOptions}
         label={"Application Status"}
-        handleClick={setSelectValue}
+        handleClick={(e) => setSelectValue(e.value)}
         name={"status"}
         value={selectValue}
       ></GenericSelect>
@@ -130,6 +134,7 @@ const EditJobForm = ({
 
   const onSubmit = () => {
     handleSubmission(form);
+    console.log(form);
   };
   return (
     <GenericModal
