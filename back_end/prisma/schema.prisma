@@ -12,7 +12,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("TEST_DB_CONNECTION_URL")
+  url      = env("DEV_DB_CONNECTION_URL")
 }
 
 model User {
@@ -35,17 +35,16 @@ enum Status {
 }
 
 model JobEntry {
-  id             Int      @id @default(autoincrement())
-  owner          User     @relation(fields: [ownerid], references: [id], onDelete: Cascade)
-  ownerid        Int
-  createdat      DateTime @default(now()) @db.Date
-  notes          String
-  jobtitle       String
-  companyname    String
-  jobdescription String
-  status         Status   @default(APPLYING)
-  salary         String
-  updatedat      DateTime
+  id          Int      @id @default(autoincrement())
+  owner       User     @relation(fields: [ownerid], references: [id], onDelete: Cascade)
+  ownerid     Int
+  createdat   DateTime @default(now()) @db.Date
+  title       String
+  companyname String
+  location    String
+  status      Status   @default(APPLYING)
+  salary      String
+  updatedat   DateTime @default(now()) @db.Date
 }
 
 model Session {
