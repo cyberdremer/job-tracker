@@ -1,6 +1,7 @@
 import { Outlet } from "react-router";
 import { Flex } from "@chakra-ui/react";
 import DashboardHeader from "@/fragments/dashboardheader";
+
 const AuthedLayout = ({ children }) => {
   return (
     <>
