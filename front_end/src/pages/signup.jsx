@@ -10,8 +10,11 @@ import {
   Button,
 } from "@chakra-ui/react";
 import timer from "@/utils/popuptimer";
-import { postRequest } from "@/utils/requests";
+import { getRequest, postRequest, protectedGetRequest } from "@/utils/requests";
+import { Navigate, useNavigate } from "react-router";
 import AlertBox from "@/alerts/alertbox";
+import backendUrl from "@/utils/backendurl";
+
 const Signup = ({}) => {
   const [form, setForm] = useState({
     firstname: "",
@@ -68,7 +71,10 @@ const Signup = ({}) => {
     }
   };
 
-  const handleGoogleSignUp = (e) => {};
+  const handleGoogleSignUp = async (e) => {
+    e.preventDefault();
+    window.open(`${backendUrl}/oauth/google`, "_self");
+  };
 
   return (
     <>
@@ -179,7 +185,7 @@ const Signup = ({}) => {
         >
           Create account
         </Button>
-        <Button>
+        <Button onClick={handleGoogleSignUp}>
           Sign Up With <FaGoogle></FaGoogle>{" "}
         </Button>
       </Fieldset.Root>

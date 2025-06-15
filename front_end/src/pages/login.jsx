@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import {
   Field,
   Input,
@@ -11,10 +11,13 @@ import {
 } from "@chakra-ui/react";
 import timer from "@/utils/popuptimer";
 import { FaGoogle } from "react-icons/fa";
-import { postRequest } from "@/utils/requests";
+import { postRequest, protectedPostRequest } from "@/utils/requests";
 import { useNavigate } from "react-router";
 import AlertBox from "@/alerts/alertbox";
+import backendUrl from "@/utils/backendurl";
+import { AuthContext } from "@/context/authcontext";
 const Login = ({}) => {
+  const {setAuthed} = useContext(AuthContext)
   const navigate = useNavigate();
   const [form, setForm] = useState({
     email: "",
@@ -37,7 +40,7 @@ const Login = ({}) => {
 
   const handleLogin = async (e) => {
     try {
-      const response = await postRequest("/login/local", form);
+      const response = await protectedPostRequest("/login/local", form);
       if (response.error) {
         throw new Error(response.error.message);
       }
@@ -45,6 +48,8 @@ const Login = ({}) => {
         message: response.data.message,
         occurred: true,
       });
+
+      setAuthed(true)
 
       setTimeout(() => {
         setSuccess({
@@ -68,7 +73,10 @@ const Login = ({}) => {
     }
   };
 
-  const handleGoogleLogin = (e) => {};
+  const handleGoogleLogin = (e) => {
+    e.preventDefault();
+    window.open(`${backendUrl}/oauth/google`, "_self", "noopener,noreferrer");
+  };
 
   return (
     <>
@@ -130,7 +138,7 @@ const Login = ({}) => {
         <Button type="submit" minWidth="100%" onClick={handleLogin}>
           Log in
         </Button>
-        <Button type="submit" minWidth="100%" onClick={handleLogin}>
+        <Button type="submit" minWidth="100%" onClick={handleGoogleLogin}>
           Log in with <FaGoogle></FaGoogle>
         </Button>
       </Fieldset.Root>
