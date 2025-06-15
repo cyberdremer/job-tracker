@@ -8,7 +8,17 @@ const formToUrlParams = (form) => {
   const urlQuery = new URLSearchParams(formData).toString();
   return urlQuery;
 };
-
+const getRequest = async (endpoint) => {
+  const response = await fetch(`${backendUrl + endpoint}`, {
+    method: "get",
+    mode: "cors",
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error.message || response.statusText);
+  }
+  return data;
+};
 const postRequest = async (endpoint, form) => {
   const query = formToUrlParams(form);
   const response = await fetch(`${backendUrl + endpoint}`, {
@@ -21,6 +31,23 @@ const postRequest = async (endpoint, form) => {
     },
   });
 
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error.message || response.statusText);
+  }
+  return data;
+};
+
+const protectedPutRequest = async (endpoint, body) => {
+  const response = await fetch(`${backendUrl + endpoint} `, {
+    method: "put",
+    mode: "cors",
+    headers: {
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(body),
+    credentials: "include",
+  });
   const data = await response.json();
   if (!response.ok) {
     throw new Error(data.error.message || response.statusText);
@@ -54,7 +81,7 @@ const protectedDeleteRequest = async (endpoint, body) => {
     headers: {
       "content-type": "application/json",
     },
-    body: JSON.stringify({ ids: body }),
+    body: JSON.stringify(body),
     credentials: "include",
   });
 
@@ -80,7 +107,9 @@ const protectedGetRequest = async (endpoint) => {
 
 export {
   postRequest,
+  getRequest,
   protectedGetRequest,
   protectedDeleteRequest,
   protectedPostRequest,
+  protectedPutRequest
 };
