@@ -20,7 +20,7 @@ model User {
   createdat    DateTime   @default(now())
   fullname     String
   email        String     @unique
-  passwordhash String
+  passwordhash String?
   jobentries   JobEntry[]
 }
 
@@ -40,8 +40,10 @@ model JobEntry {
   ownerid     Int
   createdat   DateTime @default(now()) @db.Date
   title       String
-  companyname String
+  company     String
+  dateapplied DateTime @default(now()) @db.Date
   location    String
+  link        String?
   status      Status   @default(APPLYING)
   salary      String
   updatedat   DateTime @default(now()) @db.Date
