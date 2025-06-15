@@ -11,12 +11,14 @@ import {
   Avatar,
   AvatarRootProvider,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { FaBars } from "react-icons/fa";
 import dashboardRoutes from "@/pageroutes/sidebarroutes";
 import DrawerComponent from "./drawercomponent";
 import { Link } from "react-router";
+import { InfoContext } from "@/context/infocontext";
 const DashboardHeader = () => {
+  const { user } = useContext(InfoContext);
   const [drawerVisible, setDrawerVisible] = useState(false);
 
   const handleDrawerToggle = (e) => {
@@ -58,7 +60,9 @@ const DashboardHeader = () => {
 
         <Group>
           <Avatar.Root>
-            <Avatar.Fallback name="Ai Artist"></Avatar.Fallback>
+            <Avatar.Fallback
+              name={user?.fullname || "Ai Artist"}
+            ></Avatar.Fallback>
           </Avatar.Root>
         </Group>
       </HStack>
