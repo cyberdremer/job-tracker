@@ -7,7 +7,7 @@ import FilterMenu from "@/fragments/filtermenu";
 import SwitchControl from "@/fragments/switch";
 import { Alert, Box, Button, Flex, HStack, VStack } from "@chakra-ui/react";
 import timer from "@/utils/popuptimer";
-import { useReducer, useState } from "react";
+import { useEffect, useMemo, useReducer, useState } from "react";
 import {
   CreateJobForm,
   DeleteJobForm,
@@ -18,6 +18,7 @@ import filterReducer from "@/reducers/filterreducer";
 import DateButtons from "@/fragments/datebuttons";
 import {
   postRequest,
+  protectedPutRequest,
   protectedDeleteRequest,
   protectedGetRequest,
   protectedPostRequest,
@@ -26,12 +27,14 @@ import AlertBox from "@/alerts/alertbox";
 import { useEntriesHook } from "@/effects/hooks";
 import LoadingPlaceholder from "@/fragments/loading";
 import EmptyContainer from "@/fragments/emptycontainer";
+import mapJobEntry from "@/utils/mapper";
 
 const Dashboard = () => {
   const [view, setView] = useState(false);
-  const { entries, setEntries, fetchError, loading } = useEntriesHook(
-    "/entry/retrieve/past-thirty-days"
-  );
+  const { entries, setEntries, fetchError, loading, setLoading } =
+    useEntriesHook("/entry/retrieve/all");
+
+  // const [entries, setEntries] = useState(mockJobEntries);
 
   const [selection, setSelection] = useState([]);
 
@@ -51,34 +54,76 @@ const Dashboard = () => {
     editForm: false,
   });
 
-  const [filterCriteria, dispatch] = useReducer(filterReducer, mockJobEntries);
+  const [filter, setFilter] = useState({
+    status: "",
+    salaryOrder: "",
+    dateOrder: "",
+  });
 
-  const filterSalaryAscending = () => {
-    dispatch({ type: "SET_SALARY_ASC" });
-  };
-  const filterSalaryDescending = () => {
-    dispatch({ type: "SET_SALARY_DESC" });
-  };
+  const filteredEntries = useMemo(() => {
+    let result = [...entries];
+    if (filter.status) {
+      result = result.filter(
+        (entry) => entry.status.toUpperCase() === filter.status.toUpperCase()
+      );
+    }
+    if (filter.salaryOrder) {
+      result = result.sort((a, b) => {
+        return filter.salaryOrder === "asc"
+          ? Number(b.salary) - Number(a.salary)
+          : Number(a.salary) - Number(b.salary);
+      });
+    }
+    if (filter.dateOrder) {
+      result = result.sort((a, b) => {
+        return filter.dateOrder === "asc"
+          ? new Date(b.createdAt) - new Date(a.createdAt)
+          : new Date(a.createdAt) - new Date(b.createdAt);
+      });
+    }
+    if (filter.dateRange) {
+      const startDate = new Date(filter.dateRange.startDate);
+      const endDate = new Date(filter.dateRange.endDate);
+      result = result.filter((entry) => {
+        return !(
+          new Date(entry.dateapplied).toLocaleDateString() >=
+            startDate.toLocaleDateString() &&
+          new Date(entry.dateapplied).toLocaleDateString() <=
+            endDate.toLocaleDateString()
+        );
+      });
+    }
 
-  const filterDateAscending = () => {
-    dispatch({ type: "SET_DATE_ASC" });
-  };
-
-  const filterDateDescending = () => {
-    dispatch({ type: "SET_DATE_DESC" });
-  };
+    return result;
+  }, [entries, filter]);
 
   const filterStatus = (status) => {
-    dispatch({ type: "SET_STATUS", payload: status });
+    setFilter((f) => ({
+      ...f,
+      status: status,
+    }));
   };
 
+  const filterSalary = (order) => {
+    setFilter((f) => ({ ...f, salaryOrder: order }));
+  };
+
+  const filterDate = (order) => {
+    setFilter((f) => ({ ...f, dateOrder: order }));
+  };
+  const handleDateRange = (startDate, endDate) => {
+    setFilter((f) => ({ ...f, dateRange: { startDate, endDate } }));
+  };
   const handleRefresh = () => {
-    dispatch({ type: "RESET", payload: entries });
+    setFilter({ status: null, salaryOrder: null, dateOrder: null });
   };
 
   const handleEdit = async (formData) => {
     try {
-      const response = await protectedPostRequest("/entry/update", formData);
+      const response = await protectedPutRequest(
+        `/entry/update/${selection[0]}`,
+        formData
+      );
       if (response.error) {
         throw new Error(response.error.message);
       }
@@ -87,7 +132,7 @@ const Dashboard = () => {
         return entry.id === selection[0];
       });
 
-      copy[idxToEdit] = editEntry;
+      copy[idxToEdit] = mapJobEntry(formData);
       setEntries(copy);
 
       setSuccess({
@@ -106,18 +151,23 @@ const Dashboard = () => {
         message: error.message,
         ocurred: true,
       });
+      setFormDisplayed({ ...formDisplayed, editForm: false });
+      setSelection([]);
       setTimeout(() => {
         setError({
           message: "",
           ocurred: false,
         });
       }, timer);
+    } finally {
+      setFormDisplayed({ ...formDisplayed, editForm: false });
+      setSelection([]);
     }
   };
 
   const handleDelete = async () => {
     try {
-      const response = await protectedDeleteRequest("/delete", selection[0]);
+      const response = await protectedDeleteRequest("/entry/delete", selection);
       if (response.error) {
         throw new Error(response.error.message);
       }
@@ -130,9 +180,11 @@ const Dashboard = () => {
       const entryCopy = [...entries];
       setEntries(
         entryCopy.filter((entries) => {
-          return entries.id !== selection[0];
+          return !selection.includes(entries.id);
         })
       );
+
+      setSelection([]);
 
       setTimeout(() => {
         setSuccess({
@@ -152,46 +204,9 @@ const Dashboard = () => {
           ocurred: false,
         });
       });
-    }
-  };
-
-  const handleSearch = async (startDate, endDate) => {
-    try {
-      const startSearchDate = new Date(startDate)
-        .toLocaleDateString()
-        .replaceAll("/", "-");
-      const endSearchDate = new Date(endDate)
-        .toLocaleDateString()
-        .replaceAll("/", "-");
-      const response = await protectedGetRequest(
-        `/entry/retrieve/${startSearchDate + "-" + endSearchDate}`
-      );
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      setSuccess({
-        ocurred: true,
-        message: response.data.message,
-      });
-
-      setTimeout(() => {
-        setSuccess({
-          ocurred: false,
-          message: "",
-        });
-      }, timer);
-    } catch (error) {
-      setError({
-        message: error.message,
-        ocurred: true,
-      });
-
-      setTimeout(() => {
-        setError({
-          message: "",
-          ocurred: false,
-        });
-      });
+    } finally {
+      setFormDisplayed({ ...formDisplayed, deleteForm: false });
+      setSelection([]);
     }
   };
 
@@ -205,7 +220,9 @@ const Dashboard = () => {
         message: response.data.message,
         ocurred: true,
       });
-      setEntries([...entries, response.data.entry]);
+
+      setFormDisplayed({ ...formDisplayed, addForm: false });
+      setEntries([...entries, mapJobEntry(response.data.entry)]);
       setTimeout(() => {
         setSuccess({
           message: "",
@@ -223,6 +240,9 @@ const Dashboard = () => {
           ocurred: true,
         });
       }, timer);
+    } finally {
+      setFormDisplayed({ ...formDisplayed, addForm: false });
+      setSelection([]);
     }
   };
 
@@ -251,7 +271,7 @@ const Dashboard = () => {
           setFormDisplayed({ ...formDisplayed, editForm: false })
         }
         handleSubmission={handleEdit}
-        entry={filterCriteria.find((entry) => entry.id === selection[0])}
+        entry={filteredEntries.find((entry) => entry.id === selection[0])}
       ></EditJobForm>
       <DeleteJobForm
         formOpen={formDisplayed.deleteForm}
@@ -261,6 +281,7 @@ const Dashboard = () => {
             deleteForm: false,
           })
         }
+        selection={selection}
         handleDelete={handleDelete}
       ></DeleteJobForm>
 
@@ -277,12 +298,15 @@ const Dashboard = () => {
             ></SwitchControl>
             <FilterMenu
               onStatus={filterStatus}
-              onDateAsc={filterDateAscending}
-              onDateDesc={filterDateDescending}
-              onSalaryAsc={filterSalaryAscending}
-              onSalaryDesc={filterSalaryDescending}
+              onDateAsc={() => filterDate("asc")}
+              onDateDesc={() => filterDate("desc")}
+              onSalaryAsc={() => filterSalary("asc")}
+              onSalaryDesc={() => filterSalary("desc")}
             ></FilterMenu>
-            <DateButtons handleRefresh={handleRefresh}></DateButtons>
+            <DateButtons
+              handleRefresh={handleRefresh}
+              searchForDate={handleDateRange}
+            ></DateButtons>
           </VStack>
         </Box>
 
@@ -309,7 +333,7 @@ const Dashboard = () => {
                 if (view) {
                   return (
                     <JobTable
-                      items={filterCriteria}
+                      items={filteredEntries}
                       selection={selection}
                       setSelection={setSelection}
                       displayEditForm={() => {
@@ -323,7 +347,7 @@ const Dashboard = () => {
                 } else {
                   return (
                     <JobEntryMapper
-                      jobs={filterCriteria}
+                      jobs={filteredEntries}
                       displayEditForm={(job) => {
                         setSelection([job]);
                         setFormDisplayed({ ...formDisplayed, editForm: true });
