@@ -35,6 +35,8 @@ const CreateJobForm = ({
 
   const [form, setForm] = useState({
     description: "",
+    dateapplied: "",
+    link: "",
   });
 
   const handleChange = (e) => {
@@ -45,6 +47,8 @@ const CreateJobForm = ({
     const submittedForm = {
       description: form.description,
       status: selectValue,
+      dateapplied: form.dateapplied,
+      link: form.link,
     };
     handleSubmission(submittedForm);
     console.log(form);
@@ -66,7 +70,7 @@ const CreateJobForm = ({
         </HStack>
       }
     >
-      <Field.Root required>
+      <Field.Root required={true}>
         <Field.Label>Paste the job entry here!</Field.Label>
         <Textarea
           placeholder="Job Description"
@@ -78,6 +82,13 @@ const CreateJobForm = ({
           PS. you can paste from any job scraping site!
         </Field.HelperText>
       </Field.Root>
+
+      <Field.Root required={false}>
+        <Field.Label>Link To Job: (if applicable) </Field.Label>
+        <Input name="link" value={form.link} onChange={handleChange}></Input>
+        <Field.HelperText>Enter the job posting link here.</Field.HelperText>
+      </Field.Root>
+
       <GenericSelect
         selectItems={selectOptions}
         label={"Application Status"}
@@ -85,11 +96,26 @@ const CreateJobForm = ({
         name={"status"}
         value={selectValue}
       ></GenericSelect>
+      <Field.Root required={true}>
+        <Field.Label>Date Applied: </Field.Label>
+        <Input
+          type="date"
+          name="dateapplied"
+          value={form.dateapplied}
+          placeholder="Date Applied"
+          onChange={handleChange}
+        ></Input>
+      </Field.Root>
     </GenericModal>
   );
 };
 
-const DeleteJobForm = ({ formOpen, handleFormClose, handleDelete }) => {
+const DeleteJobForm = ({
+  formOpen,
+  handleFormClose,
+  handleDelete,
+  selection,
+}) => {
   return (
     <GenericModal
       title={"Delete Job Entry"}
@@ -107,7 +133,13 @@ const DeleteJobForm = ({ formOpen, handleFormClose, handleDelete }) => {
         </HStack>
       }
     >
-      <Text>Are you sure you want to delete this entry?</Text>
+      {selection.length > 1 ? (
+        <Text>
+          Are you sure you want to delete these {selection.length} entries?
+        </Text>
+      ) : (
+        <Text>Are you sure you want to delete this entry?</Text>
+      )}
     </GenericModal>
   );
 };
@@ -125,7 +157,8 @@ const EditJobForm = ({
     company: entry?.company || "",
     location: entry?.location || "",
     salary: entry?.salary || "",
-    date: entry?.createdat || "",
+    dateapplied: entry?.dateapplied || "",
+    link: entry?.link || "",
   });
 
   const handleChange = (e) => {
@@ -133,9 +166,19 @@ const EditJobForm = ({
   };
 
   const onSubmit = () => {
-    handleSubmission(form);
-    console.log(form);
+    const submittedForm = {
+      title: form.title,
+      company: form.company,
+      location: form.location,
+      salary: form.salary,
+      dateapplied: form.dateapplied,
+      link: form.link,
+      status: selectValue[0],
+      id: entry?.id,
+    };
+    handleSubmission(submittedForm);
   };
+
   return (
     <GenericModal
       title={"Edit Job Entry"}
@@ -188,15 +231,31 @@ const EditJobForm = ({
               <Field.Root>
                 <Field.Label>Date Applied</Field.Label>
                 <Input
-                  name="date"
+                  name="dateapplied"
                   type="date"
                   placeholder={new Date(entry?.createdat) || ""}
-                  value={form.date}
+                  value={form.createdat}
                   onChange={handleChange}
                 ></Input>
               </Field.Root>
 
-              <Field.Root></Field.Root>
+              <Field.Root>
+                <Field.Label>Link to job</Field.Label>
+                <Input
+                  name="link"
+                  placeholder={entry?.link || ""}
+                  value={form.link}
+                  onChange={handleChange}
+                ></Input>
+              </Field.Root>
+
+              <GenericSelect
+                selectItems={selectOptions}
+                label={"Application Status"}
+                handleClick={(e) => setSelectValue(e.value)}
+                name={"status"}
+                value={selectValue}
+              ></GenericSelect>
             </Fieldset.Content>
             <HStack gap={3} justify="flex-start" w={"100%"}>
               <Button colorPalette={"blue"} onClick={onSubmit}>
