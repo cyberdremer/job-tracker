@@ -33,7 +33,9 @@ const signUpController = [
 
 const googleSignUpController = [
   asyncHandler(async (req, res, next) => {
-    passport.authorize("google");
+    passport.authenticate("google", {
+      scope: ["profile"],
+    })(req, res, next);
   }),
 ];
 
