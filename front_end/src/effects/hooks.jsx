@@ -1,3 +1,4 @@
+import mapJobEntry from "@/utils/mapper";
 import { protectedGetRequest } from "@/utils/requests";
 import { useEffect, useState } from "react";
 
@@ -13,14 +14,7 @@ const useEntriesHook = (endpoint) => {
         if (response.error) {
           throw new Error(response.error.message);
         }
-        const data = response.data.entries.map((entry) => ({
-          title: entry.title,
-          createdat: new Date(entry.createdat).toLocaleDateString(),
-          id: entry.id,
-          salary: entry.id,
-          location: entry.id,
-          status: entry.status,
-        }));
+        const data = response.data.jobEntries.map(mapJobEntry);
         setEntries(data);
         setLoading(false)
       } catch (error) {
@@ -33,7 +27,7 @@ const useEntriesHook = (endpoint) => {
     fetchEntries();
   }, []);
 
-  return { entries, fetchError, loading, setEntries };
+  return { entries, fetchError, loading, setLoading, setEntries };
 };
 
 export { useEntriesHook };
