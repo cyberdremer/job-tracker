@@ -1,13 +1,13 @@
 import { ButtonGroup, IconButton, Pagination } from "@chakra-ui/react";
 import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
 import { useState } from "react";
-const PaginationList = ({ items }) => {
-  const [page, setPage] = useState(1);
+const PaginationList = ({ items, pageSize, page, setPage }) => {
+  
   return (
     <>
       <Pagination.Root
-        count={items.length * 5}
-        pageSize={5}
+        count={items.length}
+        pageSize={pageSize}
         defaultPage={1}
         page={page}
         alignSelf="center"
