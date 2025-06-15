@@ -1,9 +1,15 @@
 import asyncHandler from "express-async-handler";
 import { validationResult } from "express-validator";
-import { jobEntryValidator } from "../validator/validator";
-import prisma from "../config/prisma";
-import ErrorWithStatusCode from "../errors/errorstatus";
+import {
+  editJobEntryValidator,
+  jobEntryValidator,
+} from "../validator/validator.js";
+import prisma from "../config/prisma.js";
+import ErrorWithStatusCode from "../errors/errorstatus.js";
 import isAuthorized from "../middleware/authorized.js";
+import AiClient from "../config/openai.js";
+import jobPostingPrompt from "../prompts/prompt.js";
+import { Status } from "@prisma/client";
 
 const postJobEntryController = [
   isAuthorized,
@@ -11,18 +17,39 @@ const postJobEntryController = [
   asyncHandler(async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      throw new ErrorWithStatusCode(errors.array()[0].msg, 401);
+      throw new ErrorWithStatusCode(errors.array()[0].msg, 400);
     }
-    const { title, description, company, location, salary, status } = req.body;
-    await prisma.jobEntry.create({
+    const { description, status, dateapplied, link } = req.body;
+
+    const jobDescriptionPrompt = jobPostingPrompt(description);
+    const response = await AiClient.responses.create({
+      model: "o4-mini-2025-04-16",
+      input: [
+        {
+          role: "system",
+          content:
+            "You will sumarize a job description and convert it to a useable object. If the input does not resemble a job description, then return a singular object with a parent named error, along with a child named message which contains the error message",
+        },
+        { role: "user", content: jobDescriptionPrompt },
+      ],
+    });
+
+    const jobDescriptionObject = JSON.parse(response.output_text);
+
+    if (jobDescriptionObject.error) {
+      throw new ErrorWithStatusCode(jobDescriptionObject.error.message, 400);
+    }
+
+    const entry = await prisma.jobEntry.create({
       data: {
         ownerid: req.user.id,
-        title,
-        description,
-        company,
-        location,
-        salary: parseFloat(salary),
-        status: status || "APPLYING",
+        title: jobDescriptionObject[0].title,
+        salary: jobDescriptionObject[0].salary.toString(),
+        location: jobDescriptionObject[0].location,
+        status: Status[status.toUpperCase()],
+        company: jobDescriptionObject[0].company,
+        dateapplied: new Date(dateapplied),
+        link: link || "",
       },
     });
 
@@ -30,6 +57,7 @@ const postJobEntryController = [
       data: {
         message: "Job entry created successfully",
         status: 201,
+        entry: entry,
       },
     });
   }),
@@ -62,7 +90,8 @@ const deleteJobEntryController = [
 const deleteJobEntryMultiple = [
   isAuthorized,
   asyncHandler(async (req, res, next) => {
-    const { ids } = req.body;
+    let ids = req.body;
+    ids = ids.map((id) => Number(id));
     if (!Array.isArray(ids) || ids.length === 0) {
       throw new ErrorWithStatusCode("No IDs provided", 400);
     }
@@ -93,14 +122,14 @@ const deleteJobEntryMultiple = [
 
 const updateJobEntryController = [
   isAuthorized,
-  jobEntryValidator,
+  editJobEntryValidator,
   asyncHandler(async (req, res, next) => {
     const jobEntryId = Number(req.params.id);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      throw new ErrorWithStatusCode(errors.array()[0].msg, 401);
+      throw new ErrorWithStatusCode(errors.array()[0].msg, 400);
     }
-    const { title, description, company, location, salary } = req.body;
+    const { title, company, location, salary, dateapplied, status } = req.body;
     const updatedJobEntry = await prisma.jobEntry.update({
       where: {
         id: jobEntryId,
@@ -108,10 +137,12 @@ const updateJobEntryController = [
       },
       data: {
         title,
-        description,
-        company,
+        company: company,
         location,
-        salary: parseFloat(salary),
+        salary,
+        dateapplied: new Date(dateapplied),
+        updatedat: new Date(),
+        status: Status[status.toUpperCase()] || Status.APPLIED, // Default to APPLIED if status is not provided
       },
     });
     if (!updatedJobEntry) {
@@ -121,7 +152,7 @@ const updateJobEntryController = [
       data: {
         message: "Job entry updated successfully",
         status: 200,
-        jobEntry: updatedJobEntry,
+        entry: updatedJobEntry,
       },
     });
   }),
@@ -156,15 +187,15 @@ const getJobEntriesWithinSpecificDateRangeController = [
   isAuthorized,
   asyncHandler(async (req, res, next) => {
     const startDate = new Date(
-      +req.query.startYear,
-      +req.query.startMonth - 1, // Months are 0-indexed in JavaScript
-      +req.query.startDay
+      +req.params.startyear,
+      +req.params.startmonth - 1, // Months are 0-indexed in JavaScript
+      +req.params.startday
     );
 
     const endDate = new Date(
-      +req.query.endYear,
-      +req.query.endMonth - 1,
-      +req.query.endDay
+      +req.params.endyear,
+      +req.params.endmonth - 1,
+      +req.params.endday
     );
 
     if (startDate > endDate) {
@@ -192,21 +223,21 @@ const getJobEntriesWithinSpecificDateRangeController = [
           data: {
             message: "Job entries fetched successfully",
             status: 200,
-            jobEntries,
+            entries: jobEntries,
           },
         });
   }),
 ];
 
-const getAllJobEntriesForDataVisualizationController = [
+const getAllJobEntries = [
   isAuthorized,
   asyncHandler(async (req, res, next) => {
     const jobEntries = await prisma.jobEntry.findMany({
       where: {
         ownerid: req.user.id,
       },
-      select: {
-        status: true,
+      orderBy: {
+        createdat: "desc",
       },
     });
 
@@ -225,8 +256,7 @@ export {
   deleteJobEntryController,
   getJobEntriesFromPast30DaysController,
   getJobEntriesWithinSpecificDateRangeController,
-  getAllJobEntriesController,
-  getAllJobEntriesForDataVisualizationController,
+  getAllJobEntries,
   deleteJobEntryMultiple,
   updateJobEntryController,
 };
