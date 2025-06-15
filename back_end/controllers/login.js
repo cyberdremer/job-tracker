@@ -25,7 +25,7 @@ const localLoginController = [
         }
         res.status(200).json({
           data: {
-            message: "Login Succesull",
+            message: "Login Successful",
             status: 200,
             user: {
               fullname: user.fullname,
