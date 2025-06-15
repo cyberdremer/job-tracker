@@ -134,6 +134,4 @@ const JobEntryPieChart = ({ jobEntries }) => {
   );
 };
 
-
-
 export { JobEntryBarChart, JobEntryPieChart };
