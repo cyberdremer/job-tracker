@@ -17,7 +17,8 @@ passport.deserializeUser(async (id, done) => {
       },
       select: {
         fullname: true,
-        id: true
+        id: true,
+        email: true,
       },
     });
 
@@ -27,5 +28,4 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
-
-export default passport
+export default passport;
