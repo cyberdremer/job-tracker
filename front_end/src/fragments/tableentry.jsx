@@ -8,6 +8,7 @@ import {
   TableCell,
   Badge,
   FormatNumber,
+  Link,
 } from "@chakra-ui/react";
 import PaginationList from "./pagination";
 import { useState } from "react";
@@ -21,6 +22,7 @@ const statusColor = {
   AWAITING: "purple",
   APPLIED: "teal",
 };
+
 const JobTable = ({
   items,
   displayDeleteForm,
@@ -28,10 +30,17 @@ const JobTable = ({
   selection,
   setSelection,
 }) => {
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.ceil(items.length / pageSize);
+  const startPage = (page - 1) * pageSize;
+  const endPage = startPage + pageSize;
+
+  const visibleItems = [...items].slice(startPage, endPage);
   const hasSelection = selection.length > 0;
   const indeterminate = hasSelection && selection.length < items.length;
 
-  const rows = items.map((item) => (
+  const rows = visibleItems.map((item) => (
     <Table.Row
       key={item.id}
       data-selected={selection.includes(item.id) ? "" : undefined}
@@ -54,7 +63,15 @@ const JobTable = ({
           <Checkbox.Control></Checkbox.Control>
         </Checkbox.Root>
       </Table.Cell>
-      <Table.Cell>{item.title}</Table.Cell>
+      <Table.Cell>
+        {item.link === "" ? (
+          <>{item.title}</>
+        ) : (
+          <Link target="_blank" href={item.link}>
+            {item.title}
+          </Link>
+        )}
+      </Table.Cell>
       <Table.Cell>{item.company}</Table.Cell>
       <Table.Cell>{item.location}</Table.Cell>
       <Table.Cell>
@@ -65,7 +82,7 @@ const JobTable = ({
           style="currency"
         ></FormatNumber>
       </Table.Cell>
-      <Table.Cell>{item.createdat}</Table.Cell>
+      <Table.Cell>{item.dateapplied}</Table.Cell>
       <Table.Cell>
         <Badge
           colorPalette={statusColor[item.status.trim().toUpperCase() || "grey"]}
@@ -129,7 +146,12 @@ const JobTable = ({
           </ActionBar.Positioner>
         </Portal>
       </ActionBar.Root>
-      <PaginationList items={items}></PaginationList>
+      <PaginationList
+        items={items}
+        pageSize={pageSize}
+        page={page}
+        setPage={setPage}
+      ></PaginationList>
     </>
   );
 };
