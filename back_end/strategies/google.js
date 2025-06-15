@@ -2,10 +2,15 @@ import { Strategy } from "passport-google-oauth20";
 import prisma from "../config/prisma.js";
 import "dotenv/config";
 
+const callbackURL =
+  process.env.NODE_ENV === "dev"
+    ? process.env.GOOGLE_CALLBACK_DEV_URL
+    : process.env.GOOGLE_CALLBACK_PROD_URL;
+
 const options = {
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: process.env.GOOGLE_CALLBACK_URL,
+  callbackURL: callbackURL,
 };
 
 const strategyImplementation = async (
@@ -16,23 +21,23 @@ const strategyImplementation = async (
 ) => {
   try {
     const user = await prisma.user.upsert({
-      update: {},
       where: {
-        id: profile.id,
+        email: profile.emails[0].value,
       },
+      update: {},
       create: {
         email: profile.emails[0].value,
-        id: profile.id,
-        name: profile.displayName,
+        fullname: profile.displayName,
+        passwordhash: null,
       },
     });
 
     done(null, user);
   } catch (error) {
-    done(null, false, { message: "Error occurred, please try again!" });
+    done(null, false, { message: error.message });
   }
 };
 
 const googleStrategy = new Strategy(options, strategyImplementation);
 
-export default googleStrategy
+export default googleStrategy;
