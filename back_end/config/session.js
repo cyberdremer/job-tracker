@@ -13,11 +13,14 @@ const sessionConfig = session({
   },
 
   resave: true,
-  saveUninitialized: true,
+  saveUninitialized: false,
   store: new PrismaSessionStore(prisma, {
     checkPeriod: 2 * 60 * 1000,
     dbRecordIdFunction: undefined,
     dbRecordIdIsSessionId: true,
+    logger: console,
+    enableConcurrentSetInvocationsForSameSessionID: true,
+    enableConcurrentTouchInvocationsForSameSessionID: true,
   }),
 });
 
