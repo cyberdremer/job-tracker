@@ -70,6 +70,17 @@ const jobEntryValidator = [
     .notEmpty()
     .withMessage(`Description: ${emptyError}`),
 
+  body("dateapplied")
+    .trim()
+    .notEmpty()
+    .withMessage(`Date Applied: ${emptyError}`),
+
+  body("link")
+    .optional()
+    .trim()
+    .isURL()
+    .withMessage("Link: Must be a valid URL"),
+
   body("status")
     .trim()
     .notEmpty()
@@ -82,4 +93,40 @@ const jobEntryValidator = [
     ),
 ];
 
-export { signUpValidator, loginValidator, jobEntryValidator };
+const editJobEntryValidator = [
+  body("title").trim().notEmpty().withMessage(`Title: ${emptyError}`).escape(),
+
+  body("company")
+    .trim()
+    .notEmpty()
+    .withMessage(`Company: ${emptyError}`)
+    .escape(),
+  body("location")
+    .trim()
+    .notEmpty()
+    .withMessage(`Location: ${emptyError}`)
+    .escape(),
+  body("salary")
+    .trim()
+    .notEmpty()
+    .withMessage(`Salary: ${emptyError}`)
+    .isNumeric()
+    .withMessage("Salary: Must be a valid number"),
+  body("status")
+    .trim()
+    .notEmpty()
+    .withMessage(`Status: ${emptyError}`)
+    .custom((value) => {
+      return Object.values(Status).includes(value.toUpperCase());
+    })
+    .withMessage(
+      "Status: Not a valid status, please select a valid status and try again"
+    ),
+];
+
+export {
+  signUpValidator,
+  loginValidator,
+  jobEntryValidator,
+  editJobEntryValidator,
+};
