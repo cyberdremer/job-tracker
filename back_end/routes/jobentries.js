@@ -6,11 +6,13 @@ import {
   updateJobEntryController,
   getJobEntriesWithinSpecificDateRangeController,
   getJobEntriesFromPast30DaysController,
+  getAllJobEntries,
 } from "../controllers/jobentries.js";
 
 entriesRouter.post("/create", postJobEntryController);
 entriesRouter.delete("/delete", deleteJobEntryMultiple);
-entriesRouter.put("/update", updateJobEntryController);
+entriesRouter.put("/update/:id", updateJobEntryController);
+entriesRouter.get("/retrieve/all", getAllJobEntries);
 entriesRouter.get(
   "/retrieve/past-thirty-days",
   getJobEntriesFromPast30DaysController
@@ -20,5 +22,4 @@ entriesRouter.get(
   getJobEntriesWithinSpecificDateRangeController
 );
 
-
-export default entriesRouter
+export default entriesRouter;
