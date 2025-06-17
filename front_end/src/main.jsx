@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { AuthProvider } from "./context/authcontext";
 import { InfoProvider } from "./context/infocontext";
 import { Provider } from "./components/ui/provider";
+import "@fontsource-variable/inter"
 import App from "./App";
 
 createRoot(document.getElementById("root")).render(
