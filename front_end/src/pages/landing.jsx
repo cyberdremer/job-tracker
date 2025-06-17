@@ -31,11 +31,11 @@ const Landing = () => {
           <Heading size="5xl" textAlign="center">
             Track your job applications with <br></br> Job.Tracker!
           </Heading>
-          <Text textAlign="center" >
+          <Text textAlign="center">
             Job.Tracker helps you organize and monitor your job search with
-            ease. <br></br>Effortlessly add, update, and visualize your job applications
-            in one place. <br></br>Stay on top of your progress and let our AI assist you
-            in managing application details.
+            ease. <br></br>Effortlessly add, update, and visualize your job
+            applications in one place. <br></br>Stay on top of your progress and
+            let our AI assist you in managing application details.
           </Text>
           <Group>
             <Button onClick={() => navigate("/signup")}>Get Started</Button>
@@ -43,7 +43,13 @@ const Landing = () => {
           </Group>
         </VStack>
 
-        <SimpleGrid gap="10" alignSelf="center" marginBottom="10" columns={[2]}>
+        <SimpleGrid
+          gap="10"
+          alignSelf="center"
+          marginBottom="10"
+          columns={{ base: 1, md: 2 }}
+          mt={10}
+        >
           <InfoCards
             description="Add your currently applied to jobs."
             title="Create 💡"
