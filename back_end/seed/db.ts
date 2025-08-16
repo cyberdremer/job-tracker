@@ -37,6 +37,7 @@ const seedDatabase = async () => {
           status: "APPLIED",
           company: "Tech Corp",
           dateapplied: new Date("2025-01-15"),
+          description: "",
         },
         {
           ownerid: user.id,
@@ -47,6 +48,7 @@ const seedDatabase = async () => {
           status: "INTERVIEWING",
           company: "Data Solutions Inc.",
           dateapplied: new Date("2025-02-20"),
+          description: "",
         },
         {
           ownerid: user.id,
@@ -57,6 +59,7 @@ const seedDatabase = async () => {
           company: "Innovatech",
           link: "",
           dateapplied: new Date("2025-03-10"),
+          description: "",
         },
         {
           ownerid: user.id,
@@ -67,6 +70,7 @@ const seedDatabase = async () => {
           status: "APPLIED",
           company: "Tech Corp",
           dateapplied: new Date("2025-01-15"),
+          description: "",
         },
         {
           ownerid: user.id,
@@ -77,6 +81,7 @@ const seedDatabase = async () => {
           status: "INTERVIEWING",
           company: "Data Solutions Inc.",
           dateapplied: new Date("2025-02-20"),
+          description: "",
         },
         {
           ownerid: user.id,
@@ -87,6 +92,7 @@ const seedDatabase = async () => {
           company: "Innovatech",
           link: "",
           dateapplied: new Date("2025-03-10"),
+          description: "",
         },
         {
           ownerid: user.id,
@@ -97,6 +103,7 @@ const seedDatabase = async () => {
           status: "APPLIED",
           company: "Tech Corp",
           dateapplied: new Date("2025-01-15"),
+          description: "",
         },
         {
           ownerid: user.id,
@@ -107,6 +114,7 @@ const seedDatabase = async () => {
           status: "INTERVIEWING",
           company: "Data Solutions Inc.",
           dateapplied: new Date("2025-02-20"),
+          description: "",
         },
         {
           ownerid: user.id,
@@ -117,6 +125,7 @@ const seedDatabase = async () => {
           company: "Innovatech",
           link: "",
           dateapplied: new Date("2025-03-10"),
+          description: "",
         },
       ],
     });
