@@ -1,10 +1,10 @@
-import { body } from "express-validator";
+import { body, ValidationChain } from "express-validator";
 import prisma from "../config/prisma.js";
 const emptyError = "this field cannot be empty";
 const emailError = "Not a valid email address, please try again";
 import "dotenv/config";
 import { Status } from "@prisma/client";
-const signUpValidator = [
+const signUpValidator: any = [
   body("firstname")
     .trim()
     .notEmpty()
@@ -54,7 +54,7 @@ const signUpValidator = [
     .withMessage(`Sign Up Code: Invalid Sign Up Code, Try Again!`),
 ];
 
-const loginValidator = [
+const loginValidator: any = [
   body("password").trim().notEmpty().withMessage(`Password :${emptyError}`),
   body("email")
     .trim()
@@ -64,7 +64,7 @@ const loginValidator = [
     .withMessage(`Email: ${emailError}`),
 ];
 
-const jobEntryValidator = [
+const jobEntryValidator: any = [
   body("description")
     .trim()
     .notEmpty()
@@ -81,6 +81,11 @@ const jobEntryValidator = [
     .isURL()
     .withMessage("Link: Must be a valid URL"),
 
+  body("description")
+    .trim()
+    .notEmpty()
+    .withMessage(`Job Description: ${emptyError}`),
+
   body("status")
     .trim()
     .notEmpty()
@@ -93,7 +98,7 @@ const jobEntryValidator = [
     ),
 ];
 
-const editJobEntryValidator = [
+const editJobEntryValidator: any = [
   body("title").trim().notEmpty().withMessage(`Title: ${emptyError}`).escape(),
 
   body("company")
