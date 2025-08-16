@@ -1,4 +1,10 @@
-const errorMiddleware = (err, req, res, next) => {
+import { Request, Response, NextFunction, ErrorRequestHandler } from "express";
+const errorMiddleware: ErrorRequestHandler = (
+  err,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   console.error(err.stack);
 
   const statusCode = err.status || 500;
