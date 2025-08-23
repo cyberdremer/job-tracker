@@ -4,20 +4,30 @@ import { RequestHandler, Request, Response, NextFunction } from "express";
 import upload from "../config/multer.js";
 import cloudStorageUploader from "../config/clouduploader.js";
 import ErrorWithStatusCode from "../errors/errorstatus.js";
-import { SuccessfullServerResponse } from "../interfaces/serverresponses.js";
+import {
+  ResumeFiltered,
+  SuccessfullServerResponse,
+} from "../interfaces/serverresponses.js";
+import { paginationMiddleware } from "../middleware/pagination.js";
 
 import pgvector from "pgvector";
 import pdfParse from "pdf-parse";
+import { insertEmbeddingIntoTable } from "../util/embedding.js";
+import { resolve } from "path";
 import {
-
-  insertEmbeddingIntoTable,
-} from "../util/embedding.js";
+  PaginatedResults,
+  PaginationOptions,
+  PaginationStrategyInterface,
+} from "../interfaces/pagination.js";
+import { createPaginationContext } from "../classes/pagination.js";
+import { Resume } from "@prisma/client";
+import isAuthorized from "../middleware/authorized.js";
 
 const uploadResumeController: RequestHandler[] = [
   upload.single("resume"),
   asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const { file, user } = req;
-    const { id } = user;
+    const { id } = req.user;
     if (!file) {
       throw new ErrorWithStatusCode("File not attached to request body", 404);
     }
@@ -78,6 +88,63 @@ const deleteResumeController: RequestHandler[] = [
     };
 
     res.status(response.data.status).json(response.data);
+  }),
+];
+
+const paginatedResumeController: RequestHandler[] = [
+  isAuthorized,
+  paginationMiddleware,
+  asyncHandler(async (req, res, next) => {
+    const { mode, page, cursor, limit } = req.pagination!;
+    const { id } = req.user;
+    let paginationContext: PaginationStrategyInterface<Resume>;
+    let queryResults: PaginatedResults<Resume>;
+    let options: PaginationOptions;
+    switch (mode) {
+      case "cursor":
+        options = {
+          limit: limit,
+          ownerid: id,
+          cursor: cursor,
+        };
+
+      case "offset":
+        options = {
+          limit: limit,
+          ownerid: id,
+          page: page,
+        };
+    }
+
+    paginationContext = createPaginationContext<Resume>(mode);
+    queryResults = await paginationContext.paginate(prisma.resume, options);
+    const filteredResults: ResumeFiltered[] = queryResults.data.map(
+      ({
+        id,
+        name,
+        uploadedat,
+        cloudinarylink,
+        cloudinarypublicid,
+        lastmodified,
+      }) => {
+        return {
+          id,
+          name,
+          lastModified: new Date(lastmodified),
+          uploadedAt: new Date(uploadedat),
+          cloudinaryLink: cloudinarylink,
+          cloudinaryPublicId: cloudinarypublicid,
+        };
+      }
+    );
+
+    const paginatedResults: PaginatedResults<ResumeFiltered> = {
+      data: filteredResults,
+      nextCursor: queryResults.nextCursor,
+      totalCount: queryResults.totalCount,
+    };
+
+
   }),
 ];
 

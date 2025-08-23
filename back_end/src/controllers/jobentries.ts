@@ -16,6 +16,15 @@ import { NextFunction, RequestHandler, Request, Response } from "express";
 import { insertEmbeddingIntoTable } from "../util/embedding.js";
 import { converStringsToNumbers } from "../util/isnumber.js";
 import { SuccessfullServerResponse } from "../interfaces/serverresponses.js";
+import { resolve } from "path";
+import {
+  createPaginationContext,
+  PaginationContext,
+} from "../classes/pagination.js";
+import {
+  PaginatedResults,
+  PaginationOptions,
+} from "../interfaces/pagination.js";
 
 const postJobEntryController: RequestHandler[] = [
   isAuthorized,
@@ -108,7 +117,7 @@ const deleteJobEntryController: RequestHandler[] = [
 const deleteJobEntryMultiple: RequestHandler[] = [
   isAuthorized,
   asyncHandler(async (req, res, next) => {
-    const {id} = req.user
+    const { id } = req.user;
     let ids = req.body;
     ids = (ids as (string | number)[]).map((e: string | number) => Number(e));
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -272,6 +281,8 @@ const getAllJobEntries: RequestHandler[] = [
     });
   }),
 ];
+
+
 
 export {
   postJobEntryController,
