@@ -1,9 +1,10 @@
 import express from "express";
 import cors from "cors";
-import topLevelRouter from "./routes/toplevel.js";
-import errorMiddleware from "./middleware/error.js";
-import sessionConfig from "./config/session.js";
-import passport from "./config/passport.js";
+import topLevelRouter from "./routes/toplevel";
+import errorMiddleware from "./middleware/error";
+import sessionConfig from "./config/session";
+import passport from "./config/passport";
+import logger from "./middleware/logger";
 import "dotenv/config";
 
 const corsConfig = cors({
@@ -19,6 +20,7 @@ const app = express();
 if (process.env.NODE_ENV === "prod") {
   app.set("trust proxy", 1);
 }
+app.use(logger)
 app.use(corsConfig);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -38,3 +40,5 @@ app.listen(
     );
   }
 );
+
+export default app;
