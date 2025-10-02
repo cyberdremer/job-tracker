@@ -3,20 +3,25 @@ import {
   PaginationStrategyInterface,
   PaginatedResults,
   PaginationOptions,
-} from "../interfaces/pagination.js";
-import { create } from "domain";
+} from "../interfaces/pagination";
+
 
 export class OffsetPagination<T> implements PaginationStrategyInterface<T> {
-  async paginate(
+  async paginate<
+    Select extends object | undefined = undefined,
+    Include extends object | undefined = undefined
+  >(
     modelDelegate: any,
-    options: PaginationOptions
+    options: PaginationOptions<Select, Include>
   ): Promise<PaginatedResults<T>> {
-    const { page = 1, limit, ownerid } = options;
+    const { page = 1, limit, ownerid, select, include } = options;
     const skip = (page - 1) * limit;
     const [queryResults, totalCount] = await Promise.all([
       modelDelegate.findMany({
         skip: skip,
         take: limit,
+        select: select,
+        include: include,
         where: {
           ownerid: ownerid,
         },
@@ -30,7 +35,7 @@ export class OffsetPagination<T> implements PaginationStrategyInterface<T> {
 
     const paginatedResults: PaginatedResults<T> = {
       data: queryResults,
-      totalCount: totalCount,
+      offset: totalCount,
     };
 
     return paginatedResults;
@@ -44,20 +49,28 @@ export class CursorPagination<T> implements PaginationStrategyInterface<T> {
     return Buffer.from(JSON.stringify(cursor)).toString("base64");
   }
 
-  async paginate(
+  async paginate<
+    Select extends object | undefined = undefined,
+    Include extends object | undefined = undefined
+  >(
     modelDelegate: any,
-    options: PaginationOptions
+    options: PaginationOptions<Select, Include>
   ): Promise<PaginatedResults<T>> {
-    const { cursor, limit, ownerid } = options;
+    const { cursor, limit, ownerid, select, include } = options;
 
     const queryResults = await modelDelegate.findMany({
       take: limit,
+      where: {
+        ownerid: ownerid,
+      },
       ...(cursor && { skip: 1, cursor: { id: cursor } }),
+      select: select,
+      include: include,
     });
 
     const paginatedResults: PaginatedResults<T> = {
       data: queryResults,
-      totalCount: queryResults.length,
+      offset: queryResults.length,
       nextCursor:
         queryResults.length > 0
           ? this.encodeCursor(queryResults[queryResults.length - 1].id)
@@ -75,9 +88,12 @@ export class PaginationContext<T> {
     this.strategy = strategy;
   }
 
-  async paginate(
+  async paginate<
+    Select extends object | undefined = undefined,
+    Include extends object | undefined = undefined
+  >(
     modelDelegate: any,
-    options: PaginationOptions
+    options: PaginationOptions<Select, Include>
   ): Promise<PaginatedResults<T>> {
     return this.strategy.paginate(modelDelegate, options);
   }
