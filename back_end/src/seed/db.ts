@@ -1,7 +1,7 @@
-import prisma from "../config/prisma.js";
+import prisma from "../config/prisma";
 import bcrypt from "bcryptjs";
 
-const restDatabase = async () => {
+const resetDatabase = async () => {
   try {
     await Promise.all([
       prisma.user.deleteMany(),
@@ -137,5 +137,4 @@ const seedDatabase = async () => {
   }
 };
 
-restDatabase();
-seedDatabase();
+Promise.all([resetDatabase(), seedDatabase()]);
