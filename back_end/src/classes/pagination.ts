@@ -5,7 +5,6 @@ import {
   PaginationOptions,
 } from "../interfaces/pagination";
 
-
 export class OffsetPagination<T> implements PaginationStrategyInterface<T> {
   async paginate<
     Select extends object | undefined = undefined,
@@ -43,8 +42,6 @@ export class OffsetPagination<T> implements PaginationStrategyInterface<T> {
 }
 
 export class CursorPagination<T> implements PaginationStrategyInterface<T> {
-  constructor() {}
-
   private encodeCursor(cursor: number): string {
     return Buffer.from(JSON.stringify(cursor)).toString("base64");
   }
