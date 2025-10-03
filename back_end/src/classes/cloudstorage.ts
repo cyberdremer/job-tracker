@@ -1,4 +1,4 @@
-import { CloudStorageStrategy } from "../interfaces/cloud.js";
+import { CloudStorageStrategy } from "../interfaces/cloud";
 
 export class CloudStorage {
   private strategy: CloudStorageStrategy;

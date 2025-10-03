@@ -1,4 +1,4 @@
-import { AiApiStrategy } from "../interfaces/aiapi.js";
+import { AiApiStrategy } from "../interfaces/aiapi";
 
 export class AiProvider {
   private strategy: AiApiStrategy;
