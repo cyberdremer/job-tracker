@@ -22,16 +22,16 @@ export type ResumeJobFiltered = {
   id: number;
   rating: number;
   name: string;
-
 };
 
 export type ResumeFiltered = {
   id: number;
-  cloudinaryLink: string;
-  cloudinaryPublicId: string;
-  uploadedAt: Date;
-  lastModified: Date;
+  name: string;
+  cloudinarylink: string;
+  cloudinarypublicid: string;
+  mimetype: string;
+  filesize: number;
+  originalfilename: string;
+  uploadedat: Date;
+  lastmodified: Date;
 };
-
-
-
