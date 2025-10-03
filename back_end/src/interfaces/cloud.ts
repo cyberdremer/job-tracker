@@ -1,7 +1,13 @@
+export type UploadFileResponse = {
+  url: string,
+  publicId: string,
+}
+
+
 export interface CloudStorageStrategy {
   uploadFile(
     file: Buffer,
     filename: string
-  ): Promise<{ url: string; publicId: string }>;
+  ): Promise<UploadFileResponse>;
   deleteFile(publicId: string): Promise<void>;
 }
