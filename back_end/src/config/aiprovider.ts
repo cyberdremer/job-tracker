@@ -1,6 +1,6 @@
-import { AiProvider } from "../classes/aiapi.js";
-import { AiApiStrategy } from "../interfaces/aiapi.js";
-import { OpenAIStrategy } from "./openai.js";
+import { AiProvider } from "../classes/aiapi";
+import { AiApiStrategy } from "../interfaces/aiapi";
+import { OpenAIStrategy } from "./openai";
 
 let aiProviderStrategy: AiApiStrategy;
 aiProviderStrategy = new OpenAIStrategy();
