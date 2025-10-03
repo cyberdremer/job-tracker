@@ -1,10 +1,16 @@
 import { Prisma } from "@prisma/client";
 
-export interface PaginationOptions {
+export interface PaginationOptions<
+  Select extends object | undefined = undefined,
+  Include extends object | undefined = undefined
+> {
   limit: number;
   ownerid: number;
   cursor?: number;
   page?: number;
+
+  select?: Select;
+  include?: Include;
 }
 
 export interface PaginationParams {
@@ -17,12 +23,15 @@ export interface PaginationParams {
 export interface PaginatedResults<T> {
   data: T[];
   nextCursor?: string;
-  totalCount: number;
+  offset: number;
 }
 
 export interface PaginationStrategyInterface<T> {
-  paginate(
+  paginate<
+    Select extends object | undefined = undefined,
+    Include extends object | undefined = undefined
+  >(
     modelDelegate: any,
-    options: PaginationOptions
+    options: PaginationOptions<Select, Include>
   ): Promise<PaginatedResults<T>>;
 }
