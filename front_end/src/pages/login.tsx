@@ -16,12 +16,75 @@ import { useNavigate } from "react-router";
 import AlertBox from "@/alerts/alertbox";
 import backendUrl from "@/utils/backendurl";
 import { AuthContext } from "@/context/authcontext";
+import { useFormik } from "formik";
+import { bootstrapLoginFormSchema, LoginFormValues } from "@/yupschemas/login";
+import { useRequestMutation } from "@/requests/generic";
+import { ServerResponse } from "@/interfaces/server";
+
+interface LoginResponse {
+  fullname: string;
+}
+
 const Login = ({}) => {
-  const {setAuthed} = useContext(AuthContext)
+  const { setAuthed } = useContext(AuthContext);
   const navigate = useNavigate();
-  const [form, setForm] = useState({
+
+  const initialLoginFormValues: LoginFormValues = {
     email: "",
     password: "",
+  };
+
+  const mutation = useRequestMutation<ServerResponse<LoginResponse>>();
+
+  const formik = useFormik({
+    initialValues: initialLoginFormValues,
+    validationSchema: bootstrapLoginFormSchema,
+    onSubmit: (values) => {
+      mutation.mutate(
+        {
+          url: "/login/local",
+          options: {
+            method: "POST",
+            mode: "cors",
+            headers: { "content-type": "application/x-www-form-urlencoded" },
+            credentials: "include",
+          },
+          body: values,
+        },
+
+        {
+          onSuccess: (response: ServerResponse<LoginResponse>) => {
+            setSuccess({
+              message: response.data.message || "Logged in successfully!",
+              occurred: true,
+            });
+
+            setTimeout(() => {
+              setSuccess({
+                message: "",
+                occurred: false,
+              });
+
+              setAuthed(true);
+              navigate("/dashboard");
+            });
+          },
+          onError: (error) => {
+            setError({
+              message: error.message || "An error occurred during login.",
+              occurred: true,
+            });
+
+            setTimeout(() => {
+              setError({
+                message: "",
+                occurred: false,
+              });
+            });
+          },
+        }
+      );
+    },
   });
 
   const [error, setError] = useState({
@@ -34,48 +97,13 @@ const Login = ({}) => {
     occurred: false,
   });
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleLogin = async (e) => {
-    try {
-      const response = await protectedPostRequest("/login/local", form);
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      setSuccess({
-        message: response.data.message,
-        occurred: true,
-      });
-
-      setAuthed(true)
-
-      setTimeout(() => {
-        setSuccess({
-          message: "",
-          occurred: false,
-        });
-        navigate("/dashboard");
-      }, timer);
-    } catch (error) {
-      setError({
-        message: error.message,
-        occurred: true,
-      });
-
-      setTimeout(() => {
-        setError({
-          message: "",
-          occurred: false,
-        });
-      }, timer);
-    }
-  };
-
   const handleGoogleLogin = (e) => {
     e.preventDefault();
-    window.open(`${backendUrl}/oauth/google`, "_self", "noopener,noreferrer");
+    const popup: Window = window.open(
+      `${backendUrl}/oauth/google`,
+      "googleLogin",
+      "width=500,height=600,noopener,noreferrer"
+    );
   };
 
   return (
@@ -119,8 +147,8 @@ const Login = ({}) => {
             <Input
               type="email"
               name="email"
-              value={form.email}
-              onChange={handleChange}
+              value={formik.values.email}
+              onChange={formik.handleChange}
             />
           </Field.Root>
           <Field.Root required>
@@ -130,12 +158,16 @@ const Login = ({}) => {
             <Input
               type="password"
               name="password"
-              value={form.password}
-              onChange={handleChange}
+              value={formik.values.password}
+              onChange={formik.handleChange}
             />
           </Field.Root>
         </Fieldset.Content>
-        <Button type="submit" minWidth="100%" onClick={handleLogin}>
+        <Button
+          type="submit"
+          minWidth="100%"
+          onClick={() => formik.handleSubmit}
+        >
           Log in
         </Button>
         <Button type="submit" minWidth="100%" onClick={handleGoogleLogin}>

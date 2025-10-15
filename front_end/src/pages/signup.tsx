@@ -11,18 +11,70 @@ import {
 } from "@chakra-ui/react";
 import timer from "@/utils/popuptimer";
 import { getRequest, postRequest, protectedGetRequest } from "@/utils/requests";
+import { useRequestMutation } from "@/requests/generic";
 import { Navigate, useNavigate } from "react-router";
 import AlertBox from "@/alerts/alertbox";
 import backendUrl from "@/utils/backendurl";
+import {
+  bootstrapSignUpFormSchema,
+  SignUpFormValues,
+} from "@/yupschemas/signup";
+import { ServerResponse } from "@/interfaces/server";
+import { useFormik } from "formik";
+
+
 
 const Signup = ({}) => {
-  const [form, setForm] = useState({
+  
+
+  const initialSignUpFormValues: SignUpFormValues = {
     firstname: "",
     lastname: "",
     email: "",
     password: "",
     confirmpassword: "",
     signupcode: "",
+  };
+
+  const signupMutation = useRequestMutation<ServerResponse>();
+
+  const formik = useFormik({
+    initialValues: initialSignUpFormValues,
+    validationSchema: bootstrapSignUpFormSchema,
+    onSubmit: (values) => {
+      signupMutation.mutate({
+        url: "/signup/local",
+        options: { method: "POST", mode: "cors" },
+        body: values,
+      }, {
+        onSuccess: (response: ServerResponse) => {
+          setSuccess({
+            message: response.data.message || "Account created succesfully",
+            occurred: true,
+          })
+
+          setTimeout(() => {
+            setSuccess({
+              message: "",
+              occurred: false,
+            })
+          }, timer)
+        },
+        onError:(error: Error) => {
+          setError({
+            message: error.message || "An error occurred during sign up.",
+            occurred: true,
+          })
+
+          setTimeout(() => {
+            setError({
+              message: "",
+              occurred: false,
+            })
+          }, timer)
+        }
+      });
+    },
   });
 
   const [error, setError] = useState({
@@ -35,41 +87,9 @@ const Signup = ({}) => {
     occurred: false,
   });
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  
 
-  const handleSignUp = async (e) => {
-    try {
-      const response = await postRequest("/signup/local", form);
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      setSuccess({
-        message: response.data.message,
-        occurred: true,
-      });
-
-      setTimeout(() => {
-        setSuccess({
-          message: "",
-          occurred: false,
-        });
-      }, timer);
-    } catch (error) {
-      setError({
-        message: error.message,
-        occurred: true,
-      });
-
-      setTimeout(() => {
-        setError({
-          message: "",
-          occurred: false,
-        });
-      }, timer);
-    }
-  };
+  
 
   const handleGoogleSignUp = async (e) => {
     e.preventDefault();
@@ -112,8 +132,8 @@ const Signup = ({}) => {
               </Field.Label>
               <Input
                 name="firstname"
-                value={form.firstname}
-                onChange={handleChange}
+                value={formik.values.firstname}
+                onChange={formik.handleChange}
               />
             </Field.Root>
             <Field.Root required>
@@ -123,8 +143,8 @@ const Signup = ({}) => {
               </Field.Label>
               <Input
                 name="lastname"
-                value={form.lastname}
-                onChange={handleChange}
+                value={formik.values.lastname}
+                onChange={formik.handleChange}
               />
             </Field.Root>
           </HStack>
@@ -136,8 +156,8 @@ const Signup = ({}) => {
             <Input
               name="email"
               type="email"
-              value={form.email}
-              onChange={handleChange}
+              value={formik.values.email}
+              onChange={formik.handleChange}
             />
           </Field.Root>
           <Field.Root required>
@@ -148,8 +168,8 @@ const Signup = ({}) => {
             <Input
               name="password"
               type="password"
-              value={form.password}
-              onChange={handleChange}
+              value={formik.values.password}
+              onChange={formik.handleChange}
             />
           </Field.Root>
           <Field.Root required>
@@ -160,8 +180,8 @@ const Signup = ({}) => {
             <Input
               name="confirmpassword"
               type="password"
-              value={form.confirmpassword}
-              onChange={handleChange}
+              value={formik.values.confirmpassword}
+              onChange={formik.handleChange}
             />
           </Field.Root>
           <Field.Root required>
@@ -172,8 +192,8 @@ const Signup = ({}) => {
             <Input
               name="signupcode"
               type="input"
-              value={form.signupcode}
-              onChange={handleChange}
+              value={formik.values.signupcode}
+              onChange={formik.handleChange}
             />
           </Field.Root>
         </Fieldset.Content>
@@ -181,7 +201,7 @@ const Signup = ({}) => {
           type="submit"
           alignSelf="flex-start"
           minWidth="100%"
-          onClick={handleSignUp}
+          onClick={() => formik.handleSubmit()}
         >
           Create account
         </Button>

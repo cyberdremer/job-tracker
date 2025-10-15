@@ -1,8 +1,12 @@
 import { Outlet } from "react-router";
 import { Flex } from "@chakra-ui/react";
 import DashboardHeader from "@/fragments/dashboardheader";
+import { ReactNode } from "react";
 
-const AuthedLayout = ({ children }) => {
+interface AuthedLayoutProps {
+  children: ReactNode;
+}
+const AuthedLayout = ({ children }: AuthedLayoutProps) => {
   return (
     <>
       <Flex grow="1" direction="column" minHeight="100vh">
