@@ -5,7 +5,21 @@ import {
   Select,
   Stack,
   createListCollection,
+  ListCollection,
 } from "@chakra-ui/react";
+
+interface GenericSelectProps {
+  placeHolder: string;
+  label: string;
+  handleClick: ()
+  selectItems: any
+  name: string;
+  value: string[];
+
+}
+
+
+
 const GenericSelect = ({
   selectItems,
   placeHolder,
@@ -13,7 +27,7 @@ const GenericSelect = ({
   handleClick,
   name,
   value,
-}) => {
+}: GenericSelectProps) => {
   return (
     <>
       <Select.Root

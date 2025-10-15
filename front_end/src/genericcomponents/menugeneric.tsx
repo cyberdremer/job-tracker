@@ -1,7 +1,13 @@
 import { Button, Menu, Portal } from "@chakra-ui/react";
+import React from "react";
 import { LuChevronRight } from "react-icons/lu";
 
-const MenuGeneric = ({ children, buttonMessage }) => {
+interface MenuGenericProps {
+  children: React.ReactNode;
+  buttonMessage: string;
+}
+
+const MenuGeneric = ({ children, buttonMessage }: MenuGenericProps) => {
   return (
     <Menu.Root>
       <Menu.Trigger asChild>
@@ -9,9 +15,7 @@ const MenuGeneric = ({ children, buttonMessage }) => {
           {buttonMessage}
         </Button>
       </Menu.Trigger>
-      <Portal>
-        {children}
-      </Portal>
+      <Portal>{children}</Portal>
     </Menu.Root>
   );
 };
