@@ -1,9 +1,23 @@
 import { protectedGetRequest, protectedPostRequest } from "@/utils/requests";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, Dispatch, ReactNode, SetStateAction, useContext, useEffect, useState } from "react";
 import { InfoContext } from "./infocontext";
 
-const AuthContext = createContext();
-const AuthProvider = ({ children }) => {
+
+type AuthContextType = {
+  authed: boolean;
+  loading: boolean;
+  error: boolean;
+  setAuthed: Dispatch<SetStateAction<boolean>>
+  destroySession: () => void
+}
+
+
+interface AuthContextProps  {
+  children: ReactNode
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthProvider = ({ children }: AuthContextProps) => {
   const { updateUser, clearUser } = useContext(InfoContext);
   const [authed, setAuthed] = useState(false);
   const [loading, setLoading] = useState(true);
