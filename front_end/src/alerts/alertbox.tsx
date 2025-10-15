@@ -1,6 +1,14 @@
 import { Input, Alert, Text, Stack, CloseButton } from "@chakra-ui/react";
 
-const AlertBox = ({ title, type, message }) => {
+type Status = "info" | "warning" | "success" | "error" | "neutral";
+
+interface AlertBoxProps {
+  title: string;
+  type: Status;
+  message: string;
+}
+
+const AlertBox = ({ title, type, message }: AlertBoxProps) => {
   return (
     <Alert.Root
       status={type}
