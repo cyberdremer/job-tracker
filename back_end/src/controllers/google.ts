@@ -1,7 +1,7 @@
-import passport from "../config/passport.js";
+import passport from "../config/passport";
 import asyncHandler from "express-async-handler";
-import ErrorWithStatusCode from "../errors/errorstatus.js";
-import frontendUrl from "../util/frontend.js";
+import ErrorWithStatusCode from "../errors/errorstatus";
+import frontendUrl from "../util/frontend";
 
 const googleSignupController = asyncHandler(async (req, res, next) => {
   passport.authenticate("google", { scope: ["profile", "email"] })(

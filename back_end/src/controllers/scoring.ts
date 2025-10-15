@@ -1,14 +1,14 @@
 import { RequestHandler, Response, Request, NextFunction } from "express";
 import asyncHandler from "express-async-handler";
 import { resolve } from "path";
-import prisma from "../config/prisma.js";
+import prisma from "../config/prisma";
 import {
   computeCosineSimilarity,
   computeTopKSimilarities,
 } from "@prisma/client/sql";
-import ErrorWithStatusCode from "../errors/errorstatus.js";
-import { SuccessfullServerResponse } from "../interfaces/serverresponses.js";
-import { converStringsToNumbers } from "../util/isnumber.js";
+import ErrorWithStatusCode from "../errors/errorstatus";
+import { SuccessfullServerResponse } from "../interfaces/serverresponses";
+import { converStringsToNumbers } from "../util/isnumber";
 import { JobEntry, Resume, ResumeJobFeedback } from "@prisma/client";
 
 const computeScoreController: RequestHandler[] = [

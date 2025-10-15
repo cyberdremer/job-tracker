@@ -1,32 +1,35 @@
 import asyncHandler from "express-async-handler";
-import prisma from "../config/prisma.js";
+import prisma from "../config/prisma";
 import { RequestHandler, Request, Response, NextFunction } from "express";
-import upload from "../config/multer.js";
-import cloudStorageUploader from "../config/clouduploader.js";
-import ErrorWithStatusCode from "../errors/errorstatus.js";
+import upload from "../config/multer";
+import cloudStorageUploader from "../config/clouduploader";
+import ErrorWithStatusCode from "../errors/errorstatus";
 import {
   ResumeFiltered,
   SuccessfullServerResponse,
-} from "../interfaces/serverresponses.js";
-import { paginationMiddleware } from "../middleware/pagination.js";
+} from "../interfaces/serverresponses";
+import { paginationMiddleware } from "../middleware/pagination";
 
-import pgvector from "pgvector";
 import pdfParse from "pdf-parse";
-import { insertEmbeddingIntoTable } from "../util/embedding.js";
-import { resolve } from "path";
+import { insertEmbeddingIntoTable } from "../util/embedding";
 import {
   PaginatedResults,
   PaginationOptions,
   PaginationStrategyInterface,
-} from "../interfaces/pagination.js";
-import { createPaginationContext } from "../classes/pagination.js";
-import { Resume } from "@prisma/client";
-import isAuthorized from "../middleware/authorized.js";
+} from "../interfaces/pagination";
+import aiServicesProvider from "../config/aiprovider";
+import { createPaginationContext } from "../classes/pagination";
+import { Prisma, Resume } from "@prisma/client";
+import isAuthorized from "../middleware/authorized";
+import { verifyFileType } from "../middleware/filetype";
+import { ResumeResponse } from "../types/resume";
 
 const uploadResumeController: RequestHandler[] = [
+  isAuthorized,
   upload.single("resume"),
+  verifyFileType,
   asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const { file, user } = req;
+    const { file } = req;
     const { id } = req.user;
     if (!file) {
       throw new ErrorWithStatusCode("File not attached to request body", 404);
@@ -38,9 +41,9 @@ const uploadResumeController: RequestHandler[] = [
 
     const uploadedResume = await prisma.resume.create({
       data: {
+        name: file.originalname,
         ownerid: id,
         originalfilename: file.originalname,
-        name: file.filename,
         cloudinarylink: uploadResult.url,
         cloudinarypublicid: uploadResult.publicId,
         filesize: file.size,
@@ -49,17 +52,42 @@ const uploadResumeController: RequestHandler[] = [
     });
 
     const { text } = await pdfParse(file.buffer);
+    const embedding = await aiServicesProvider.generateEmbedding(text);
     const insertResult = await insertEmbeddingIntoTable(
-      text,
+      embedding,
       "Resume",
       uploadedResume.id
     );
 
-    const response: SuccessfullServerResponse = {
+    const resumeResponse: ResumeResponse = {
+      resumeCore: {
+        resumeId: uploadedResume.id,
+        fileName: uploadedResume.originalfilename,
+      },
+      resumeMeta: {
+        mimeType: uploadedResume.mimetype,
+        size: uploadedResume.filesize,
+        uploadedAt: uploadedResume.uploadedat,
+      },
+      resumeCloudInformation: {
+        cloudinaryPublicUrl: uploadedResume.cloudinarylink,
+        cloudinaryPublicId: uploadedResume.cloudinarypublicid
+      }
+      
+      // resumeId: uploadedResume.id,
+      // uploadedAt: uploadedResume.uploadedat,
+      // cloudinaryPublicUrl: uploadedResume.cloudinarylink,
+      // cloudinaryPublidId: uploadedResume.cloudinarypublicid,
+      // fileName: uploadedResume.originalfilename,
+      // mimeType: uploadedResume.mimetype,
+      // size: uploadedResume.filesize,
+    };
+
+    const response: SuccessfullServerResponse<ResumeResponse> = {
       data: {
-        message: `${file.filename} has been successfully uploaded`,
+        message: `${file.originalname} has been successfully uploaded`,
         status: 200,
-        object: undefined,
+        object: resumeResponse,
       },
     };
 
@@ -68,6 +96,7 @@ const uploadResumeController: RequestHandler[] = [
 ];
 
 const deleteResumeController: RequestHandler[] = [
+  isAuthorized,
   asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const { resumeId } = req.params;
     const { id } = req.user;
@@ -79,11 +108,18 @@ const deleteResumeController: RequestHandler[] = [
       },
     });
 
-    const response: SuccessfullServerResponse = {
+    const deletedResumeResponse: ResumeResponse = {
+      resumeCore: {
+        resumeId: deletedResume.id,
+        fileName: deletedResume.originalfilename,
+      }
+    };
+
+    const response: SuccessfullServerResponse<ResumeResponse> = {
       data: {
         message: `${deletedResume.name} has been deleted`,
         status: 200,
-        object: undefined,
+        object: deletedResumeResponse,
       },
     };
 
@@ -99,13 +135,25 @@ const paginatedResumeController: RequestHandler[] = [
     const { id } = req.user;
     let paginationContext: PaginationStrategyInterface<Resume>;
     let queryResults: PaginatedResults<Resume>;
-    let options: PaginationOptions;
+    let selectOptions: Prisma.ResumeSelect = {
+      id: true,
+      name: true,
+      cloudinarylink: true,
+      cloudinarypublicid: true,
+      mimetype: true,
+      filesize: true,
+      uploadedat: true,
+      lastmodified: true,
+    };
+    let options: PaginationOptions<Prisma.ResumeSelect>;
+
     switch (mode) {
       case "cursor":
         options = {
           limit: limit,
           ownerid: id,
           cursor: cursor,
+          select: selectOptions,
         };
 
       case "offset":
@@ -113,39 +161,35 @@ const paginatedResumeController: RequestHandler[] = [
           limit: limit,
           ownerid: id,
           page: page,
+          select: selectOptions,
         };
     }
 
     paginationContext = createPaginationContext<Resume>(mode);
     queryResults = await paginationContext.paginate(prisma.resume, options);
-    const filteredResults: ResumeFiltered[] = queryResults.data.map(
-      ({
-        id,
-        name,
-        uploadedat,
-        cloudinarylink,
-        cloudinarypublicid,
-        lastmodified,
-      }) => {
-        return {
-          id,
-          name,
-          lastModified: new Date(lastmodified),
-          uploadedAt: new Date(uploadedat),
-          cloudinaryLink: cloudinarylink,
-          cloudinaryPublicId: cloudinarypublicid,
-        };
-      }
-    );
 
     const paginatedResults: PaginatedResults<ResumeFiltered> = {
-      data: filteredResults,
+      results: queryResults.results,
       nextCursor: queryResults.nextCursor,
-      totalCount: queryResults.totalCount,
+      offset: queryResults.offset,
     };
 
+    const response: SuccessfullServerResponse<
+      PaginatedResults<ResumeFiltered>
+    > = {
+      data: {
+        message: "Resumes have been fetched!",
+        status: 200,
+        object: paginatedResults,
+      },
+    };
 
+    res.status(response.data.status).json(response.data.object);
   }),
 ];
 
-export { uploadResumeController, deleteResumeController };
+export {
+  uploadResumeController,
+  deleteResumeController,
+  paginatedResumeController,
+};

@@ -3,28 +3,34 @@ import { validationResult } from "express-validator";
 import {
   editJobEntryValidator,
   jobEntryValidator,
-} from "../validator/validator.js";
+} from "../validator/validator";
 
-import ErrorWithStatusCode from "../errors/errorstatus.js";
-import isAuthorized from "../middleware/authorized.js";
-import aiServicesProvider from "../config/aiprovider.js";
-import jobPostingPrompt from "../prompts/prompt.js";
-import { JobEntry, Status } from "@prisma/client";
-import prisma from "../config/prisma.js";
+import ErrorWithStatusCode from "../errors/errorstatus";
+import isAuthorized from "../middleware/authorized";
+import aiServicesProvider from "../config/aiprovider";
+import jobPostingPrompt from "../prompts/prompt";
+import { JobEntry, Prisma, Status } from "@prisma/client";
+import prisma from "../config/prisma";
 import pgvector from "pgvector";
 import { NextFunction, RequestHandler, Request, Response } from "express";
-import { insertEmbeddingIntoTable } from "../util/embedding.js";
-import { converStringsToNumbers } from "../util/isnumber.js";
-import { SuccessfullServerResponse } from "../interfaces/serverresponses.js";
+import { insertEmbeddingIntoTable } from "../util/embedding";
+import { converStringsToNumbers } from "../util/isnumber";
+import {
+  JobEntryFiltered,
+  SuccessfullServerResponse,
+} from "../interfaces/serverresponses";
 import { resolve } from "path";
 import {
   createPaginationContext,
   PaginationContext,
-} from "../classes/pagination.js";
+} from "../classes/pagination";
 import {
   PaginatedResults,
   PaginationOptions,
-} from "../interfaces/pagination.js";
+  PaginationStrategyInterface,
+} from "../interfaces/pagination";
+import { paginationMiddleware } from "../middleware/pagination";
+import { JobResponse } from "../types/jobs";
 
 const postJobEntryController: RequestHandler[] = [
   isAuthorized,
@@ -76,13 +82,31 @@ const postJobEntryController: RequestHandler[] = [
       entry.id
     );
 
-    res.status(201).json({
+    const job: JobResponse = {
+      job: {
+        id: entry.id,
+        title: entry.title,
+        company: entry.company,
+        location: entry.location,
+        salary: entry.salary,
+        dateapplied: entry.dateapplied,
+      },
+      meta: {
+        description: entry.description || undefined,
+        link: entry.link || undefined,
+        status: entry.status,
+      },
+    };
+
+    const jobEntryResponse: SuccessfullServerResponse<JobResponse> = {
       data: {
         message: "Job entry created successfully",
         status: 201,
-        entry: entry,
+        object: job,
       },
-    });
+    };
+
+    res.status(jobEntryResponse.data.status).json(jobEntryResponse.data);
   }),
 ];
 
@@ -124,6 +148,9 @@ const deleteJobEntryMultiple: RequestHandler[] = [
       throw new ErrorWithStatusCode("No IDs provided", 400);
     }
 
+
+    let deletedResponse: JobResponse | JobResponse[] 
+
     const deleted = await prisma.jobEntry.deleteMany({
       where: {
         id: {
@@ -136,7 +163,10 @@ const deleteJobEntryMultiple: RequestHandler[] = [
     if (deleted.count === 0) {
       throw new ErrorWithStatusCode("No Entries were deleted!", 400);
     }
+
     const message = deleted.count === 1 ? "Entry Deleted" : "Entries deleted";
+
+    
 
     res.status(200).json({
       data: {
@@ -179,17 +209,36 @@ const updateJobEntryController: RequestHandler[] = [
     if (!updatedJobEntry) {
       throw new ErrorWithStatusCode("Job entry not found", 404);
     }
-    res.status(200).json({
-      data: {
-        message: "Job entry updated successfully",
-        status: 200,
-        entry: updatedJobEntry,
+
+    const updatedJobEntryResponse: JobResponse = {
+      job: {
+        id: updatedJobEntry.id,
+        title: updatedJobEntry.title,
+        company: updatedJobEntry.company,
+        location: updatedJobEntry.location,
+        salary: updatedJobEntry.salary,
+        dateapplied: updatedJobEntry.dateapplied,
       },
-    });
+      meta: {
+        description: updatedJobEntry.description || undefined,
+        link: updatedJobEntry.link || undefined,
+        status: updatedJobEntry.status,
+      },
+    };
+
+    const response: SuccessfullServerResponse<JobResponse> = {
+      data: {
+        message: "Job entry updated succesfully!",
+        status: 200,
+        object: updatedJobEntryResponse,
+      },
+    };
+
+    res.status(response.data.status).json(response.data);
   }),
 ];
 
-const getJobEntriesFromPast30DaysController = [
+const getJobEntriesFromPast30DaysController: RequestHandler[] = [
   isAuthorized,
   asyncHandler(async (req, res, next) => {
     const today = new Date();
@@ -204,13 +253,33 @@ const getJobEntriesFromPast30DaysController = [
       },
     });
 
-    res.status(200).json({
+    const jobInformation: JobResponse[] = jobEntries.map((job) => {
+      return {
+        job: {
+          id: job.id,
+          title: job.title,
+          company: job.company,
+          location: job.location,
+          salary: job.salary,
+          dateapplied: job.dateapplied,
+        },
+        meta: {
+          description: job.description || undefined,
+          link: job.link || undefined,
+          status: job.status,
+        },
+      };
+    });
+
+    const serverResponse: SuccessfullServerResponse<JobResponse[]> = {
       data: {
         message: "Job entries fetched succesfully",
         status: 200,
-        jobEntries,
+        object: jobInformation,
       },
-    });
+    };
+
+    res.status(serverResponse.data.status).json(serverResponse.data);
   }),
 ];
 
@@ -270,6 +339,7 @@ const getAllJobEntries: RequestHandler[] = [
       orderBy: {
         createdat: "desc",
       },
+      select: {},
     });
 
     res.status(200).json({
@@ -282,7 +352,81 @@ const getAllJobEntries: RequestHandler[] = [
   }),
 ];
 
+const getJobEntriesPaginated: RequestHandler[] = [
+  isAuthorized,
+  paginationMiddleware,
+  asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { mode, page, cursor, limit } = req.pagination!;
+    const { id } = req.user;
 
+    let paginationContext: PaginationStrategyInterface<JobEntry>;
+    let queryResults: PaginatedResults<JobEntry>;
+    let options: PaginationOptions<Prisma.JobEntrySelect>;
+    let selectOptions: Prisma.JobEntrySelect = {
+      id: true,
+      title: true,
+      company: true,
+      location: true,
+      description: true,
+      link: true,
+      status: true,
+      salary: true,
+      dateapplied: true,
+    };
+
+    switch (mode) {
+      case "cursor":
+        options = {
+          limit: limit,
+          ownerid: id,
+          cursor: cursor,
+          select: selectOptions,
+        };
+      case "offset":
+        options = {
+          limit: limit,
+          ownerid: id,
+          page: page,
+          select: selectOptions,
+        };
+    }
+
+    paginationContext = createPaginationContext<JobEntry>(mode);
+    queryResults = await paginationContext.paginate(prisma.jobEntry, options);
+
+    const jobInformation: JobResponse[] = queryResults.results.map((job) => {
+      return {
+        job: {
+          id: job.id,
+          title: job.title,
+          company: job.company,
+          location: job.location,
+          salary: job.salary,
+          dateapplied: job.dateapplied,
+        },
+        meta: {
+          description: job.description || undefined,
+          link: job.link || undefined,
+          status: job.status,
+        },
+      };
+    });
+
+    const paginatedResults: PaginatedResults<JobResponse> = {
+      results: jobInformation,
+      nextCursor: queryResults.nextCursor,
+      offset: queryResults.offset,
+    };
+
+    const response: SuccessfullServerResponse<PaginatedResults<JobResponse>> = {
+      data: {
+        message: "Job entries have been fetched!",
+        status: 200,
+        object: paginatedResults,
+      },
+    };
+  }),
+];
 
 export {
   postJobEntryController,

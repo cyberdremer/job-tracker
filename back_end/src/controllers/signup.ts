@@ -1,9 +1,9 @@
 import asyncHandler from "express-async-handler";
 import { validationResult } from "express-validator";
-import { signUpValidator } from "../validator/validator.js";
+import { signUpValidator } from "../validator/validator";
 import bcrypt from "bcryptjs";
-import ErrorWithStatusCode from "../errors/errorstatus.js";
-import prisma from "../config/prisma.js";
+import ErrorWithStatusCode from "../errors/errorstatus";
+import prisma from "../config/prisma";
 import passport from "passport";
 import { Request, Response, NextFunction, RequestHandler } from "express";
 
