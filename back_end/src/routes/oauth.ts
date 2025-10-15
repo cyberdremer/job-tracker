@@ -3,7 +3,7 @@ const oauthRouter = Router();
 import {
   googleSignupController,
   googleLoginController,
-} from "../controllers/google.js";
+} from "../controllers/google";
 oauthRouter.get("/google", googleSignupController);
 oauthRouter.get("/google/callback", googleLoginController);
 

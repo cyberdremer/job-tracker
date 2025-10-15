@@ -3,7 +3,7 @@ import {
   computeTopKSimilarResumesControllers,
   computeScoreController,
   deleteFeedbackController,
-} from "../controllers/scoring.js";
+} from "../controllers/scoring";
 
 const scoreRouter = Router();
 scoreRouter.post("/resume/:resumeId");

@@ -8,7 +8,7 @@ import {
   getJobEntriesWithinSpecificDateRangeController,
   getJobEntriesFromPast30DaysController,
   getAllJobEntries,
-} from "../controllers/jobentries.js";
+} from "../controllers/jobentries";
 
 entriesRouter.post("/create", postJobEntryController);
 entriesRouter.delete("/delete", deleteJobEntryMultiple);
