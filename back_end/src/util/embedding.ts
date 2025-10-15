@@ -1,34 +1,24 @@
-import prisma from "../config/prisma.js";
-
+import prisma from "../config/prisma";
+import pgvector from "pgvector";
 
 const tableNames = new Set(["Resume", "JobEntry"]);
 
 const insertEmbeddingHelper = async (
   tableName: string,
-  embedding: any,
+  embedding: number[],
   recordId: number
 ): Promise<number> => {
-  try {
-    if (!tableNames.has(tableName)) {
-      throw new Error("Table given does not exist!");
-    }
-    const templateString = `UPDATE "${tableName}" SET embedding = $1 WHERE id = $2`;
-    const result = await prisma.$executeRawUnsafe(
-      templateString,
-      embedding,
-      recordId
-    );
-    return result;
-  } catch (error) {
-    throw error;
+  if (!tableNames.has(tableName)) {
+    throw new Error("Table given does not exist!");
   }
+
+  return await prisma.$executeRawUnsafe(
+  `UPDATE "${tableName}" SET embedding = '[${embedding}]'::vector WHERE id = ${recordId}`
+);
 };
 
-
- 
-
 const insertEmbeddingIntoTable = async (
-  embedding: any,
+  embedding: number[],
   tableName: string,
   recordId: number
 ) => {
