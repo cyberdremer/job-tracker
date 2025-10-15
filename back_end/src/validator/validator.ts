@@ -1,5 +1,5 @@
 import { body, ValidationChain } from "express-validator";
-import prisma from "../config/prisma.js";
+import prisma from "../config/prisma";
 const emptyError = "this field cannot be empty";
 const emailError = "Not a valid email address, please try again";
 import "dotenv/config";
