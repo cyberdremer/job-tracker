@@ -4,9 +4,9 @@ import {
   VerifyFunctionWithRequest,
 } from "passport-local";
 import bcrypt from "bcryptjs";
-import prisma from "../config/prisma.js";
+import prisma from "../config/prisma";
 import "dotenv/config";
-import ErrorWithStatusCode from "../errors/errorstatus.js";
+import ErrorWithStatusCode from "../errors/errorstatus";
 
 const options = { usernameField: "email" };
 

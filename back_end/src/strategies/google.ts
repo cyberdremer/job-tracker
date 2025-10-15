@@ -4,7 +4,7 @@ import {
   StrategyOptions,
   VerifyCallback,
 } from "passport-google-oauth20";
-import prisma from "../config/prisma.js";
+import prisma from "../config/prisma";
 import "dotenv/config";
 
 const callbackURL =
