@@ -1,13 +1,8 @@
-import { RequestHandler, Request } from "express";
-import multer, {
-  memoryStorage,
-  FileFilterCallback,
-  Multer,
-  Options,
-} from "multer";
-import { fileTypeFromBuffer } from "file-type";
+import { RequestHandler, Request, NextFunction } from "express";
+import multer, { FileFilterCallback } from "multer";
 
-const storage = multer.memoryStorage();
+import { fileTypeFromBuffer } from "file-type";
+import ErrorWithStatusCode from "../errors/errorstatus";
 
 enum AcceptedMimeTypes {
   TEXT = "text/plain",
@@ -16,37 +11,40 @@ enum AcceptedMimeTypes {
   DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 }
 
-const acceptedTypes: Set<string> = new Set(Object.values(AcceptedMimeTypes));
-
+export const acceptedTypes: Set<string> = new Set(
+  Object.values(AcceptedMimeTypes)
+);
+const fileLimits = {
+  fileSize: 10 * 1024 * 1024,
+  files: 1,
+};
+const storage = multer.memoryStorage();
 const fileFilter = async (
   req: Request,
   file: Express.Multer.File,
   callback: FileFilterCallback
 ) => {
-  if (!req.file) {
-    throw new Error("No file attached to request object");
+  try {
+    const fileType = file.mimetype;
+    if (!fileType) {
+      return callback(new Error("Error in reading buffer"));
+    }
+    if (!acceptedTypes.has(fileType)) {
+      return callback(new ErrorWithStatusCode("Unsupported File type", 422));
+    }
+    if (file.size > fileLimits.fileSize) {
+      return callback(new ErrorWithStatusCode("File is too large", 413));
+    }
+    callback(null, true);
+  } catch (error) {
+    callback(error as Error);
   }
-  const fileType = await fileTypeFromBuffer(req.file.buffer);
-  if (!fileType) {
-    return callback(new Error("Error in reading buffer"));
-  }
-  if (!acceptedTypes.has(fileType.mime)) {
-    return callback(new Error("Unsupported File type"));
-  }
-  if (req.file.size > fileLimits.fileSize) {
-    return callback(new Error("File is too large"));
-  }
-  callback(null, true);
 };
 
-const fileLimits = {
-  fileSize: 6 * 1024,
-  files: 1,
-};
-
-const upload = multer({
+const upload: multer.Multer = multer({
   fileFilter: fileFilter,
   limits: fileLimits,
+  storage,
 });
 
 export default upload;

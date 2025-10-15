@@ -1,8 +1,8 @@
 import passport from "passport";
-import prisma from "./prisma.js";
-import localStrategy from "../strategies/local.js";
-import googleStrategy from "../strategies/google.js";
-import { DeserializedUser } from "../interfaces/user.js";
+import prisma from "./prisma";
+import localStrategy from "../strategies/local";
+import googleStrategy from "../strategies/google";
+import { DeserializedUser } from "../interfaces/user";
 passport.use(localStrategy);
 passport.use(googleStrategy);
 

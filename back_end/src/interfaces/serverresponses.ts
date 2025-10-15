@@ -13,8 +13,8 @@ export type JobEntryFiltered = {
   company: string;
   location: string;
   salary: string;
-  updatedAt: Date;
-  dateApplied: Date;
+  updatedat: Date;
+  dateapplied: Date;
   status: Status;
 };
 

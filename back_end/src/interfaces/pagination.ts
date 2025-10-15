@@ -21,7 +21,7 @@ export interface PaginationParams {
 }
 
 export interface PaginatedResults<T> {
-  data: T[];
+  results: T[];
   nextCursor?: string;
   offset: number;
 }

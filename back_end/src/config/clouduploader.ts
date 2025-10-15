@@ -1,7 +1,7 @@
-import { CloudStorage } from "../classes/cloudstorage.js";
+import { CloudStorage } from "../classes/cloudstorage";
 import "dotenv/config";
-import { CloudStorageStrategy } from "../interfaces/cloud.js";
-import { CloudinaryStrategy } from "./cloudinary.js";
+import { CloudStorageStrategy } from "../interfaces/cloud";
+import { CloudinaryStrategy } from "./cloudinary";
 
 let cloudStorageProvider: CloudStorageStrategy;
 

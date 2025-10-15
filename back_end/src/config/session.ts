@@ -1,4 +1,4 @@
-import prisma from "./prisma.js";
+import prisma from "./prisma";
 import { PrismaSessionStore } from "@quixo3/prisma-session-store";
 import session from "express-session";
 import "dotenv/config";

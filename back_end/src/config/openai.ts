@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { AiApiStrategy } from "../interfaces/aiapi.js";
+import { AiApiStrategy } from "../interfaces/aiapi";
 import "dotenv/config";
 
 

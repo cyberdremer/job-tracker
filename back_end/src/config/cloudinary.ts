@@ -3,11 +3,11 @@ import {
   DeleteApiResponse,
   UploadApiResponse,
 } from "cloudinary";
-import { CloudStorageStrategy } from "../interfaces/cloud.js";
+import { CloudStorageStrategy, UploadFileResponse } from "../interfaces/cloud";
 import { resolve } from "path";
 import { rejects } from "assert";
 import { error } from "console";
-import ErrorWithStatusCode from "../errors/errorstatus.js";
+import ErrorWithStatusCode from "../errors/errorstatus";
 
 export class CloudinaryStrategy implements CloudStorageStrategy {
   constructor() {
@@ -22,7 +22,7 @@ export class CloudinaryStrategy implements CloudStorageStrategy {
   async uploadFile(
     file: Buffer,
     filename: string
-  ): Promise<{ url: string; publicId: string }> {
+  ): Promise<UploadFileResponse> {
     try {
       const uploadResult: UploadApiResponse = await new Promise(
         (resolve, reject) => {
@@ -42,7 +42,7 @@ export class CloudinaryStrategy implements CloudStorageStrategy {
 
       return {
         url: uploadResult.url,
-        publicId: uploadResult.publicId,
+        publicId: uploadResult.public_id,
       };
     } catch (error) {
       throw new ErrorWithStatusCode("Error with uploading file", 400);
