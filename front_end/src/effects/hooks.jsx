@@ -30,4 +30,8 @@ const useEntriesHook = (endpoint) => {
   return { entries, fetchError, loading, setLoading, setEntries };
 };
 
+
+
+
+
 export { useEntriesHook };

@@ -1,0 +1,97 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions", "typedSql"]
+  // TODO Report this option to devs, cannot generate client when this option is selected
+  // output   = "../generated/prisma"
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("TEST_DB_CONNECTION_URL")
+  extensions = [vector]
+}
+
+model User {
+  id                Int                 @id @default(autoincrement())
+  createdat         DateTime            @default(now())
+  fullname          String
+  email             String              @unique
+  passwordhash      String?
+  jobentries        JobEntry[]
+  Resume            Resume[]
+  ResumeJobFeedback ResumeJobFeedback[]
+}
+
+enum Status {
+  CLOSED
+  REJECTED
+  ACCEPTED
+  INTERVIEWING
+  AWAITING
+  APPLYING
+  APPLIED
+}
+
+model Resume {
+  id                 Int                          @id @default(autoincrement())
+  name               String
+  owner              User                         @relation(fields: [ownerid], references: [id], onDelete: Cascade)
+  ownerid            Int
+  embedding          Unsupported("vector(1536)")?
+  cloudinarylink     String
+  cloudinarypublicid String
+  mimetype           String
+  filesize           Int
+  originalfilename   String
+  uploadedat         DateTime                     @default(now())
+  lastmodified       DateTime                     @updatedAt
+  ResumeJobFeedback  ResumeJobFeedback[]
+}
+
+model ResumeJobFeedback {
+  id        Int                          @id @default(autoincrement())
+  name      String
+  rating    Float                        @db.DoublePrecision()
+  createdat DateTime                     @default(now())
+  embedding Unsupported("vector(1536)")?
+
+  resume   Resume @relation(fields: [resumeid], references: [id], onDelete: Cascade)
+  resumeid Int
+
+  jobentry   JobEntry @relation(fields: [jobEntryId], references: [id], onDelete: Cascade)
+  jobEntryId Int
+
+  owner   User @relation(fields: [ownerid], references: [id])
+  ownerid Int
+}
+
+model JobEntry {
+  id                Int                          @id @default(autoincrement())
+  owner             User                         @relation(fields: [ownerid], references: [id], onDelete: Cascade)
+  ownerid           Int
+  createdat         DateTime                     @default(now()) @db.Date
+  title             String
+  company           String
+  dateapplied       DateTime                     @default(now()) @db.Date
+  location          String
+  description       String
+  link              String?
+  status            Status                       @default(APPLYING)
+  salary            String
+  updatedat         DateTime                     @default(now()) @db.Date
+  embedding         Unsupported("vector(1536)")?
+  ResumeJobFeedback ResumeJobFeedback[]
+}
+
+model Session {
+  id        String   @id
+  sid       String   @unique
+  data      String // MediumText may be needed for MySql
+  expiresAt DateTime
+}
