@@ -1,5 +1,15 @@
 import { v4 as uuidv4 } from "uuid";
-const mockJobEntries = [
+
+interface MockJobEntry {
+  title: string;
+  salary: string;
+  location: string;
+  company: string;
+  status: string;
+  createdat: string;
+  id: string;
+}
+const mockJobEntries: MockJobEntry[] = [
   {
     title: "SWE 2",
     salary: "200000",
@@ -162,7 +172,6 @@ const mockJobEntries = [
     createdat: "5/23/2025",
     id: uuidv4(),
   },
-  
 ];
 
 export default mockJobEntries;
