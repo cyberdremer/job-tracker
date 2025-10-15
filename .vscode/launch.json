@@ -1,21 +1,36 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Debug Express Server",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "program": "${workspaceFolder}/back_end/app.js",
-            "env": {
-                "NODE_ENV":"dev"
-            }
-        }
+    "configurations": [{
+        "type": "node",
+        "request": "launch",
+        "name": "Debug Server",
+        "skipFiles": [
+            "<node_internals>/**",
+        ],
+        "env": {
+            "NODE_ENV": "dev"
+        },
+        "args": [
+            "${workspaceFolder}/back_end/src/app.ts"
+        ],
+        "runtimeArgs": [
+            "--nolazy",
+            "--require",
+            "ts-node/register",
+        ],
+        "sourceMaps": true,
+        "restart": true,
+
+        "resolveSourceMapLocations": [
+            "${workspaceFolder}/**",
+            "!**/node_modules/**"
+        ],
+        "outFiles": [
+            "${workspaceFolder}/src/backend/dist/*.(m|c|)js",
+            "!**/node_modules/**"
+        ],
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "openOnSessionStart",
+        "cwd": "${workspaceFolder}/back_end"
+    }
     ]
 }
