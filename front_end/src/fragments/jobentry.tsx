@@ -1,3 +1,4 @@
+import { JobItem, JobStatus } from "@/interfaces/jobs";
 import {
   Button,
   Card,
@@ -14,28 +15,23 @@ import { FaEdit } from "react-icons/fa";
 import { FaDeleteLeft, FaTrash } from "react-icons/fa6";
 import Tilt from "react-parallax-tilt";
 
-const statusColor = {
+const statusColor: Record<JobStatus, string> = {
   APPLYING: "blue",
   INTERVIEWING: "orange",
   REJECTED: "red",
   ACCEPTED: "green",
   CLOSED: "gray",
-  AWAITING: "purple",
+  AWAITNG: "purple",
   APPLIED: "teal",
 };
 
-const JobEntryCards = ({
-  title,
-  salary,
-  location,
-  company,
-  status,
-  link,
-  id,
-  onEdit,
-  onDelete,
-  dateapplied,
-}) => {
+interface JobEntryCardsProps {
+  entry: JobItem;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+const JobEntryCards = ({ entry, onEdit, onDelete }: JobEntryCardsProps) => {
   return (
     <Card.Root
       width="350px"
@@ -49,53 +45,55 @@ const JobEntryCards = ({
         <Card.Header>
           <HStack justifyContent="space-between" alignItems="center">
             <Heading size="md">
-              {link === "" ? (
+              {entry.meta.link === "" ? (
                 <>
-                  <Text>{title}</Text>
+                  <Text>{entry.job.title}</Text>
                 </>
               ) : (
-                <Link target="_blank" href={link}>
-                  {title}
+                <Link target="_blank" href={entry.meta.link}>
+                  {entry.job.title}
                 </Link>
               )}
             </Heading>
-            <Badge colorPalette={statusColor[status?.toUpperCase()] || "gray"}>
-              {status}
+            <Badge
+              colorPalette={
+                statusColor[entry.meta.status?.toUpperCase()] || "gray"
+              }
+            >
+              {entry.meta.status}
             </Badge>
           </HStack>
           <Text fontSize="sm" color="gray.500">
-            {company}
+            {entry.job.company}
           </Text>
         </Card.Header>
         <Card.Body>
-          <Stack spacing="1">
+          <Stack>
             <Text>
               <b>Company: </b>
-              {company}
+              {entry.job.company}
             </Text>
             <Text>
-              <b>Location:</b> {location}
+              <b>Location:</b> {entry.job.location}
             </Text>
             <Text>
               <b>Salary:</b>{" "}
               <FormatNumber
-                value={salary}
+                value={Number(entry.job.salary)}
                 style="currency"
                 currency="USD"
               ></FormatNumber>
             </Text>
             <Text>
-              <b>Date Applied:</b> {dateapplied}
+              <b>Date Applied:</b> {entry.job.dateapplied.toDateString()}
             </Text>
           </Stack>
         </Card.Body>
         <Card.Footer>
-          <HStack spacing="3">
+          <HStack>
             <IconButton size="sm" colorScheme="blue" onClick={() => onEdit()}>
               <FaEdit></FaEdit>
             </IconButton>
-
-          
 
             <IconButton
               size={"sm"}

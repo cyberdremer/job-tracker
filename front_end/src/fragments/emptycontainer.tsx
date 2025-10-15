@@ -1,5 +1,8 @@
 import { Stack, Heading } from "@chakra-ui/react";
-const EmptyContainer = ({message}) => {
+interface EmptyContainerProps {
+  message: string;
+}
+const EmptyContainer = ({message}: EmptyContainerProps) => {
   return (
     <>
       <Stack

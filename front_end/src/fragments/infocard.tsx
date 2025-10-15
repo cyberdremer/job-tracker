@@ -1,5 +1,11 @@
 import { Card, Avatar } from "@chakra-ui/react";
-const InfoCards = ({ title, description, image }) => {
+
+interface InfoCardsProp {
+  title: string;
+  description: string;
+}
+
+const InfoCards = ({ title, description }: InfoCardsProp) => {
   return (
     <Card.Root width="320px" minHeight="200px">
       <Card.Body gap="10">
@@ -9,6 +15,5 @@ const InfoCards = ({ title, description, image }) => {
     </Card.Root>
   );
 };
-
 
 export default InfoCards;

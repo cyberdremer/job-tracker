@@ -11,15 +11,31 @@ import {
   Link,
 } from "@chakra-ui/react";
 import PaginationList from "./pagination";
-import { useState } from "react";
+import React, { useState } from "react";
+import { JobItem, JobStatus } from "@/interfaces/jobs";
 
-const statusColor = {
+
+
+
+export interface JobTableProps {
+  items: JobItem[],
+  displayDeleteForm: () => void;
+  displayEditForm: () => void;
+  selection: (string | number)[]
+  setSelection: React.Dispatch<React.SetStateAction<(string | number)[]>>
+
+}
+
+
+
+
+const statusColor: Record<JobStatus, string> = {
   APPLYING: "blue",
   INTERVIEWING: "orange",
   REJECTED: "red",
   ACCEPTED: "green",
   CLOSED: "gray",
-  AWAITING: "purple",
+  AWAITNG: "purple",
   APPLIED: "teal",
 };
 
@@ -29,7 +45,7 @@ const JobTable = ({
   displayEditForm,
   selection,
   setSelection,
-}) => {
+}: JobTableProps) => {
   const [page, setPage] = useState(1);
   const pageSize = 10;
   const totalPages = Math.ceil(items.length / pageSize);

@@ -1,8 +1,21 @@
 import { ButtonGroup, IconButton, Pagination } from "@chakra-ui/react";
 import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
 import { useState } from "react";
-const PaginationList = ({ items, pageSize, page, setPage }) => {
-  
+import { JobItem } from "@/interfaces/jobs";
+
+interface PaginationListProps {
+  items: JobItem[];
+  pageSize: number;
+  page: number;
+  setPage: (page: number) => void;
+}
+
+const PaginationList = ({
+  items,
+  pageSize,
+  page,
+  setPage,
+}: PaginationListProps) => {
   return (
     <>
       <Pagination.Root

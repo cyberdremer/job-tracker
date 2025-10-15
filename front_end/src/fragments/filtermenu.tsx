@@ -1,7 +1,25 @@
 import { Menu, For, Portal } from "@chakra-ui/react";
 import MenuGeneric from "@/genericcomponents/menugeneric";
 import { LuChevronRight } from "react-icons/lu";
-const filterOptions = [
+
+
+interface FilteringOptions {
+  name: string;
+  nested: string[];
+
+}
+
+
+interface FilterMenuProps {
+  onStatus: (status: string) => void;
+  onSalaryAsc: () => void;
+  onSalaryDesc: () => void;
+  onDateAsc: () => void;
+  onDateDesc: () => void;
+
+}
+
+const filterOptions: FilteringOptions[] = [
   {
     name: "Salary",
     nested: ["Lowest", "Highest"],
@@ -24,14 +42,19 @@ const filterOptions = [
   },
 ];
 
+
+
+
+
+
 const FilterMenu = ({
   onStatus,
   onSalaryAsc,
   onSalaryDesc,
   onDateAsc,
   onDateDesc,
-}) => {
-  const handleMenuClick = (option, item) => {
+}: FilterMenuProps) => {
+  const handleMenuClick = (option , item) => {
     switch (option.name) {
       case "Date Applied":
         item === "Oldest" ? onDateDesc() : onDateAsc();

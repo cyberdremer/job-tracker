@@ -12,18 +12,34 @@ import {
 } from "@chakra-ui/react";
 import GenericSelect from "@/genericcomponents/genericselect";
 import { useState } from "react";
+import { useFormik } from "formik";
 
-const selectOptions = createListCollection({
-  items: [
-    { label: "Applying", value: "APPLYING" },
-    { label: "Interviewing", value: "INTERVIEWING" },
-    { label: "Rejected", value: "REJECTED" },
-    { label: "Accepted", value: "ACCEPTED" },
-    { label: "Closed", value: "CLOSED" },
-    { label: "Awaiting", value: "AWAITING" },
-    { label: "Applied", value: "APPLIED" },
-  ],
+import {
+  boostrapCreateJobFormSchema,
+  bootstrapEditJobFormSchema,
+  CreateJobFormValues,
+} from "@/yupschemas/yupjubforms";
+
+const STATUS_OPTIONS = [
+  { label: "Applying", value: "APPLYING" },
+  { label: "Interviewing", value: "INTERVIEWING" },
+  { label: "Rejected", value: "REJECTED" },
+  { label: "Accepted", value: "ACCEPTED" },
+  { label: "Closed", value: "CLOSED" },
+  { label: "Awaiting", value: "AWAITING" },
+  { label: "Applied", value: "APPLIED" },
+] as const;
+
+type SelectionOption = (typeof STATUS_OPTIONS)[number];
+
+const selectOptions = createListCollection<SelectionOption>({
+  items: STATUS_OPTIONS,
 });
+
+interface CreateJobFormProps {
+  formOpen: boolean;
+  handleFormClose: () => void;
+}
 
 const CreateJobForm = ({
   formOpen,
@@ -32,27 +48,19 @@ const CreateJobForm = ({
   value,
 }) => {
   const [selectValue, setSelectValue] = useState([]);
-
-  const [form, setForm] = useState({
+  const initialFormikValues: CreateJobFormValues = {
     description: "",
-    dateapplied: "",
+    datepplied: "",
     link: "",
+  };
+  const formik = useFormik({
+    initialValues: initialFormikValues,
+    validationSchema: boostrapCreateJobFormSchema,
+    onSubmit: (values) => {
+      console.log(values);
+    },
   });
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const onSubmit = () => {
-    const submittedForm = {
-      description: form.description,
-      status: selectValue,
-      dateapplied: form.dateapplied,
-      link: form.link,
-    };
-    handleSubmission(submittedForm);
-    console.log(form);
-  };
   return (
     <GenericModal
       title={"Create Job Entry"}
@@ -61,7 +69,7 @@ const CreateJobForm = ({
       handleClose={handleFormClose}
       footerButtons={
         <HStack gap={3} justify={"flex-start"} w={"100%"}>
-          <Button colorPalette="green" onClick={onSubmit}>
+          <Button colorPalette="green" onClick={() => formik.handleSubmit}>
             <Text>Create Job Entry</Text>
           </Button>
           <Button variant="outline" onClick={handleFormClose}>
@@ -74,8 +82,8 @@ const CreateJobForm = ({
         <Field.Label>Paste the job entry here!</Field.Label>
         <Textarea
           placeholder="Job Description"
-          value={form.description}
-          onChange={handleChange}
+          value={formik.values.description}
+          onChange={formik.handleChange}
           name="description"
         ></Textarea>
         <Field.HelperText>
@@ -85,7 +93,11 @@ const CreateJobForm = ({
 
       <Field.Root required={false}>
         <Field.Label>Link To Job: (if applicable) </Field.Label>
-        <Input name="link" value={form.link} onChange={handleChange}></Input>
+        <Input
+          name="link"
+          value={formik.values.link}
+          onChange={formik.handleChange}
+        ></Input>
         <Field.HelperText>Enter the job posting link here.</Field.HelperText>
       </Field.Root>
 
@@ -101,9 +113,9 @@ const CreateJobForm = ({
         <Input
           type="date"
           name="dateapplied"
-          value={form.dateapplied}
+          value={formik.values.datepplied}
           placeholder="Date Applied"
-          onChange={handleChange}
+          onChange={formik.handleChange}
         ></Input>
       </Field.Root>
     </GenericModal>
@@ -233,7 +245,7 @@ const EditJobForm = ({
                 <Input
                   name="dateapplied"
                   type="date"
-                  placeholder={new Date(entry?.createdat) || ""}
+                  placeholder={new Date(entry?.createdat).toDateString() || ""}
                   value={form.createdat}
                   onChange={handleChange}
                 ></Input>

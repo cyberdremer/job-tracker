@@ -1,6 +1,23 @@
 import { Drawer, Text, Button, Portal, CloseButton } from "@chakra-ui/react";
+import React from "react";
 
-const DrawerComponent = ({ children, open, title, close, placement }) => {
+type Placement = "top" | "start" | "bottom" | "end";
+
+interface DrawerComponentProps {
+  children: React.ReactNode;
+  open: boolean;
+  title: string;
+  close: () => void;
+  placement: Placement;
+}
+
+const DrawerComponent = ({
+  children,
+  open,
+  title,
+  close,
+  placement,
+}: DrawerComponentProps) => {
   return (
     <Drawer.Root open={open} placement={placement}>
       <Portal>
