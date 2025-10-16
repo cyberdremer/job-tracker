@@ -2,6 +2,10 @@
 
 Job Tracker is a web application designed to help users organize, monitor, and visualize their job search process. Effortlessly add, update, and track your job applications in one place, and leverage AI assistance to manage application details.
 
+
+## Live Demo
+https://job-tracker-frontend-production-5306.up.railway.app/
+
 ## Features
 
 - **User Authentication:** Sign up and log in securely.
